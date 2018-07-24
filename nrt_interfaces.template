@@ -1,0 +1,8 @@
+Value PORT_NUMBERS (\d\/\w+)
+Value ADMIN_STATE (\w+)
+Value OPER_STATE (\w+)
+Value LINK_STATE (\w+)
+
+
+Start
+	^${PORT_NUMBERS} +${ADMIN_STATE} +${OPER_STATE} +${LINK_STATE} .+ -> Record

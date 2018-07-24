@@ -1,0 +1,8 @@
+Value PORT_NUMBERS (\d\/\d+-?\d?\d?,?\d?\/?\d?-?\d?\d?)
+Value F_TAGGING_MODE (.+) 
+Value F_TAGGED_MODE (.+) 
+Value F_UNTAGGED_MODE (.+)
+Value PRIORITY (\d)
+
+Start
+	^(vlan ports) ${PORT_NUMBERS} tagging ${F_TAGGING_MODE} filter-tagged-frame ${F_TAGGED_MODE} filter-untagged-frame ${F_UNTAGGED_MODE}  priority ${PRIORITY} -> Record

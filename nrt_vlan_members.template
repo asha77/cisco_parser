@@ -1,0 +1,6 @@
+Value VLAN_ID (\d+)
+Value PORT_NUMBERS (.+)
+
+Start
+	^(vlan members) ${VLAN_ID} ${PORT_NUMBERS} -> Record
+	^(vlan members add) ${VLAN_ID} ${PORT_NUMBERS} -> Record

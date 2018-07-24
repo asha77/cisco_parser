@@ -1,0 +1,5 @@
+Value PORT_NUMBERS (\d\/.+-?\d?)
+Value PVID (\d+)
+
+Start
+	^(vlan ports) ${PORT_NUMBERS} pvid ${PVID} -> Record
