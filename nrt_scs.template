@@ -1,0 +1,11 @@
+Value CROSS_ID (\d?.\d+.\w\d.)
+Value PANEL_ID (\w\d?.\d+.)
+Value SKS_PORT_ID (\d+)
+Value PORT_MARK (\d?.\d+.\d+)
+Value ROOM_ID (\d?.\d+.)
+Value SOCKET_NUM (\d+)
+Value SOCKET_MARK (\d?.\d+.\w\d.\w\d.\d+.\d+)
+Value CABLE_TYPE (\w+)
+
+Start
+	^\d+;${CROSS_ID};${PANEL_ID};${SKS_PORT_ID};${PORT_MARK};${ROOM_ID};${SOCKET_NUM};${SOCKET_MARK};${CABLE_TYPE};.+ -> Record

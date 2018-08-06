@@ -1,0 +1,6 @@
+Value PORT_NUMBER (\d\/\w+)
+Value MAC (([0-9a-f]{1,2}[\.:-]){5}([0-9a-f]{1,2}))
+
+
+Start
+	^learned + ${MAC} +${PORT_NUMBER} .+ -> Record

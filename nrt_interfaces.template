@@ -5,4 +5,4 @@ Value LINK_STATE (\w+)
 
 
 Start
-	^${PORT_NUMBERS} +${ADMIN_STATE} +${OPER_STATE} +${LINK_STATE} .+ -> Record
+	^${PORT_NUMBERS} +\d? +${ADMIN_STATE} +${OPER_STATE} +${LINK_STATE} .+ -> Record
