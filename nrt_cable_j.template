@@ -1,0 +1,6 @@
+Value PORT_NUM (\d+\.\d+)
+Value SOCKET_MARK (\d?\.\d+\.\w\d\.\w\d+\.\d+\.\d+)
+Value ROOM_NUMBER (\d?\.\d+\.?)
+
+Start
+	^${SOCKET_MARK};${PORT_NUM};${ROOM_NUMBER} -> Record
