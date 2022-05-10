@@ -1,8 +1,10 @@
-Value PORT_NUMBERS (\d\/\w+)
-Value ADMIN_STATE (\w+)
-Value OPER_STATE (\w+)
-Value LINK_STATE (\w+)
-
+Value PORT (\S+)
+Value NAME (.+?)
+Value STATUS (err-disabled|disabled|connected|notconnect|inactive|up|down|monitoring|suspended)
+Value VLAN (\S+)
+Value DUPLEX (\S+)
+Value SPEED (\S+)
+Value TYPE (.*)
 
 Start
-	^${PORT_NUMBERS} +\d? +${ADMIN_STATE} +${OPER_STATE} +${LINK_STATE} .+ -> Record
+  ^\s*${PORT}\s+${NAME}\s+${STATUS}\s+${VLAN}\s+${DUPLEX}\s+${SPEED}\s*${TYPE}$$ -> Record

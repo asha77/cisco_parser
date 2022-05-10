@@ -1,6 +1,8 @@
-Value PORT_NUMBER (\d\/\w+)
-Value MAC (([0-9a-f]{1,2}[\.:-]){5}([0-9a-f]{1,2}))
-
+Value DESTINATION_ADDRESS (\w+\.\w+\.\w+)
+Value TYPE (\w+)
+Value VLAN (\S+)
+Value DESTINATION_PORT (\S+)
 
 Start
-	^learned + ${MAC} +${PORT_NUMBER} .+ -> Record
+  ^Vlan\s+Mac Address\s+Type\s+Ports\s*
+  ^\s+${VLAN}\s+${DESTINATION_ADDRESS}\s+${TYPE}\s+${DESTINATION_PORT} -> Record
