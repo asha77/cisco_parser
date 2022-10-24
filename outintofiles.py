@@ -33,6 +33,19 @@ def init_files():
     resfile.write("Hostname;VLAN;MAC;PORT\n")
     resfile.close()
 
+    # инициализация файла с конфигурациями интерфейсов
+    resfile = open("output\\interfaces.csv", "w")
+    resfile.write("File Name;Hostname;Switch type;Num of Ph ports;Num of SVI ints;Num of access ports;Num of trunk ports;Num of access dot1x ports;Num of ints w/IP;Access Vlans;Native Vlans;Voice Vlans;Trunk Vlans\n")
+    resfile.close()
+
+
+
+
+
+
+
+
+
 
 def all_neighbours_file_output(all_neighbours):
     all_found_neighbours = open("output\\all_nei_output.csv", "a")
@@ -128,6 +141,46 @@ def ports_file_output(file, curr_path, config):
         ports_used))
     port_template.close()
     resfile.close()
+
+
+
+def interfaces_file_output(int_config):
+    f_interfaces = open("output\\interfaces.csv", "a")
+
+    for i in range(0, len(int_config)):
+        f_interfaces.write('{0:1s};{1:1s};{2:1s};{3:4d};{4:4d};{5:4d};{6:4d};{7:4d};{8:4d};{9:1s};{10:1s};{11:1s};{12:1s} \n'.format(
+            int_config[i][0],
+            int_config[i][1],
+            int_config[i][2],
+            int_config[i][3],
+            int_config[i][4],
+            int_config[i][5],
+            int_config[i][6],
+            int_config[i][7],
+            int_config[i][8],
+            ', '.join(int_config[i][9]),
+            ', '.join(int_config[i][10]),
+            ', '.join(int_config[i][11]),
+            ', '.join(int_config[i][12])
+        ))
+    f_interfaces.close()
+
+
+
+
+    # [0] - file
+    # [1] - hostname
+    # [2] - type of switch (asw, dsw, csw, undefined)
+    # [3] - number of physical interfaces
+    # [4] - number of SVI interfaces
+    # [5] - number of access interfaces
+    # [6] - number of trunk interfaces
+    # [7] - number of access ports with dot1x
+    # [8] - number of ip addresses
+    # [9] - list of access vlan(s)
+    # [10] - list of native vlan(s)
+    # [11] - list of voice vlan(s)
+    # [12] - list of vlan(s) on trunks
 
 
 

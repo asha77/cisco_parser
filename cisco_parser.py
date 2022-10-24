@@ -1,8 +1,6 @@
 import argparse
 from out_to_screen import *
-from txtfsmparsers import *
 from outintofiles import *
-
 
 from txtfsmparsers import *
 import os
@@ -36,15 +34,12 @@ def main():
         print("!!! Ошибка: Необходмо указать файл конфигурации Cisco для анализа (полный вывод show running-config)")
         exit()
 
-    if ((namespace.mode == 'single') and (not namespace.showrun == None)):
-        cfilename = namespace.showrun
-
     curr_path = os.path.abspath(os.getcwd())
     if namespace.configdir:
         os.chdir(namespace.configdir)
 
-    if namespace.mode == 'single':
-        config = cfilename.read()
+    if ((namespace.mode == 'single') and (not namespace.showrun == None)):
+        cfilename = namespace.showrun
         print("---------------------------------------------------------------------"
               "-------------------------------------------------------------------------------"
               "----------------------------------------------------------")
@@ -54,7 +49,7 @@ def main():
         print("---------------------------------------------------------------------"
               "-------------------------------------------------------------------------------"
               "----------------------------------------------------------")
-        devices_summary_output(1, config)
+        devices_summary_output(1, namespace.showrun, cfilename.read())
     else:
         list_of_files = os.listdir(namespace.configdir)
         print("---------------------------------------------------------------------"
@@ -104,21 +99,24 @@ def main():
 
                     # формирование списка инвентаризационной информации
                     devices_summary_output(list_of_files.index(file), file, config)   # print to screen
-                    ports_file_output(file, curr_path, config)                        # print to file
+                    ports_file_output(file, curr_path, config)                        # print into file
+
+                    # заполняем devinfo
+                    devinfo=fill_devinfo_from_config(config)
 
                     # формирование перечня cdp-связности
-                    cdp_neighbours=get_cdp_neighbours(config, curr_path, file, fill_devinfo_from_config(config))
+                    cdp_neighbours=get_cdp_neighbours(config, curr_path, file, devinfo)
 
                     # формирование перечня CDP-соседей
-                    all_neighbours_file_output(cdp_neighbours)       # print ports with neighbours to file
-                    neighbours_file_output(cdp_neighbours)           # print CDP connectivity to file
+                    all_neighbours_file_output(cdp_neighbours)       # print ports with neighbours into file
+                    neighbours_file_output(cdp_neighbours)           # print CDP connectivity into file
 
                     # формирование перечня портов, за которым видно много MAC-адресов
-                    many_macs_file_output(config, curr_path, cdp_neighbours, fill_devinfo_from_config(config))
+                    many_macs_file_output(config, curr_path, cdp_neighbours, devinfo)
 
-                    # формирование перечня VRF
-
-
+                    # формирование перечня VLAN на портах
+                    int_config = get_interfaces_config(config, curr_path, file, devinfo)
+                    interfaces_file_output(int_config)              # print interfaces info into file
 
         # conffile.close()
         print("---------------------------------------------------------------------"

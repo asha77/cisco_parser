@@ -1,0 +1,26 @@
+Value Required INTERFACE (\S+)
+Value DESCRIPTION (.+?)
+Value IP_ADDRESS (\d+\.\d+\.\d+\.\d+)
+Value NETMASK ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)
+Value ACCESS_VLAN_ID (\d+)
+Value PORT_MODE (\S+)
+Value VOICE_VLAN_ID (\d+)
+Value TRUNK_VLAN_ID (\S+)
+Value NATIVE_VLAN_ID (\d+)
+Value CHANNEL_GROUP (\d+)
+Value PO_MODE (\S+)
+Value AUTH_MODE (\S+\s\S+)
+
+Start
+  ^interface\s+${INTERFACE}
+  ^\s+description\s+${DESCRIPTION}$$
+  ^\s+ip\s+address\s+${IP_ADDRESS}\s+${NETMASK}$$
+  ^\s+switchport\s+mode\s+${PORT_MODE}$$
+  ^\s+switchport\s+access\s+vlan\s+${ACCESS_VLAN_ID}$$
+  ^\s+switchport\s+voice\s+vlan\s+${VOICE_VLAN_ID}$$
+  ^\s+switchport\s+trunk\s+allowed\s+vlan\s+${TRUNK_VLAN_ID}$$
+  ^\s+switchport\s+trunk\s+native\s+vlan\s+${NATIVE_VLAN_ID}$$
+  ^\s+channel-group\s+${CHANNEL_GROUP}\s+mode\s+${PO_MODE}$$
+  ^\s+authentication\s+order\s+${AUTH_MODE}$$
+  ^!$$ -> Record
+#  ^. -> Error
