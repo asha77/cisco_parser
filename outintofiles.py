@@ -35,21 +35,15 @@ def init_files():
 
     # инициализация файла с конфигурациями интерфейсов
     resfile = open("output\\interfaces.csv", "w")
-    resfile.write("File Name;Hostname;Switch type;Num of Ph ports;Num of SVI ints;Num of access ports;Num of trunk ports;Num of access dot1x ports;Num of ints w/IP;Access Vlans;Native Vlans;Voice Vlans;Trunk Vlans\n")
+    resfile.write(
+        'File Name;Hostname;Switch type;Num of Ph ports;Num of SVI ints;Num of access ports;Num of trunk ports;Num of '
+        'access dot1x ports;Num of ints w/IP;Access Vlans;Native Vlans;Voice Vlans;Trunk Vlans;Vlan database;users '
+        'id;iot_toro id;media_equip id;off_equip id;admin id;\n')
     resfile.close()
-
-
-
-
-
-
-
-
 
 
 def all_neighbours_file_output(all_neighbours):
     all_found_neighbours = open("output\\all_nei_output.csv", "a")
-#    all_found_neighbours.write("Hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
 
     for i in range(len(all_neighbours)):
         all_found_neighbours.write('{0:1s};{1:1s};{2:1s} \n'.format(
@@ -109,7 +103,6 @@ def many_macs_file_output(config, curr_path, neighbours, devinfo):
     many_macs.close()
 
 
-
 def ports_file_output(file, curr_path, config):
     port_template = open(curr_path + '\\nrt_interfaces.template')
     port_fsm = textfsm.TextFSM(port_template)
@@ -145,29 +138,7 @@ def ports_file_output(file, curr_path, config):
 
 
 def interfaces_file_output(int_config):
-    f_interfaces = open("output\\interfaces.csv", "a")
-
-    for i in range(0, len(int_config)):
-        f_interfaces.write('{0:1s};{1:1s};{2:1s};{3:4d};{4:4d};{5:4d};{6:4d};{7:4d};{8:4d};{9:1s};{10:1s};{11:1s};{12:1s} \n'.format(
-            int_config[i][0],
-            int_config[i][1],
-            int_config[i][2],
-            int_config[i][3],
-            int_config[i][4],
-            int_config[i][5],
-            int_config[i][6],
-            int_config[i][7],
-            int_config[i][8],
-            ', '.join(int_config[i][9]),
-            ', '.join(int_config[i][10]),
-            ', '.join(int_config[i][11]),
-            ', '.join(int_config[i][12])
-        ))
-    f_interfaces.close()
-
-
-
-
+    # interfaces_configuration
     # [0] - file
     # [1] - hostname
     # [2] - type of switch (asw, dsw, csw, undefined)
@@ -181,10 +152,44 @@ def interfaces_file_output(int_config):
     # [10] - list of native vlan(s)
     # [11] - list of voice vlan(s)
     # [12] - list of vlan(s) on trunks
+    # [13] - all vlan from vlan database
+    # [14] - vlan id of users vlan
+    # [15] - vlan id of iot_toro vlan
+    # [16] - vlan id of media_equip vlan
+    # [17] - vlan id of off_equip vlan
+    # [18] - vlan id of admin vlan
 
+    f_interfaces = open("output\\interfaces.csv", "a")
 
+    vlans_all = ""
 
+    for i in range(len(int_config[13])):
+        vlans_all = vlans_all + int_config[13][i][1] + " " + int_config[13][i][0]
+        if (i < len(int_config[13])-1):
+            vlans_all = vlans_all + ", "
 
+    f_interfaces.write('{0:1s};{1:1s};{2:1s};{3:4d};{4:4d};{5:4d};{6:4d};{7:4d};{8:4d};{9:1s};{10:1s};{11:1s};{12:1s};{13:1s};{14:1s};{15:1s};{16:1s};{17:1s};{18:1s}\n'.format(
+        int_config[0],
+        int_config[1],
+        int_config[2],
+        int_config[3],
+        int_config[4],
+        int_config[5],
+        int_config[6],
+        int_config[7],
+        int_config[8],
+        ', '.join(int_config[9]),
+        ', '.join(int_config[10]),
+        ', '.join(int_config[11]),
+        ', '.join(int_config[12]),
+        vlans_all,
+        int_config[14],
+        int_config[15],
+        int_config[16],
+        int_config[17],
+        int_config[18]
+        ))
+    f_interfaces.close()
 
 # Create a function to easily repeat on many lists:
 def ListToFormattedString(alist):

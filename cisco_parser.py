@@ -118,6 +118,9 @@ def main():
                     int_config = get_interfaces_config(config, curr_path, file, devinfo)
                     interfaces_file_output(int_config)              # print interfaces info into file
 
+
+
+
         # conffile.close()
         print("---------------------------------------------------------------------"
               "-------------------------------------------------------------------------------"
