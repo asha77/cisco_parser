@@ -33,7 +33,12 @@ def obtain_model(config):
         match = re.search("\wisco (.*) \(.*\) \w* (with )*\d+K\/\d+K bytes of memory.", config)
         if match:
             return match.group(1).strip()
-        return "Not Found"
+        else:
+            match = re.search("\ \ cisco Nexus9000 (.*) Chassis", config)
+            if match:
+                return "N9K-"+match.group(1).strip()
+            else:
+                return "Not Found"
 
 
 def obtain_serial(config):
@@ -72,7 +77,11 @@ def obtain_software_version(config):
     if match:
         return match.group(1).strip()
     else:
-        return "Not Found"
+        match = re.search("\ *NXOS: version (.*)", config)
+        if match:
+            return match.group(1).strip()
+        else:
+            return "Not Found"
 
 
 def obtain_mng_ip_from_config(filename):
