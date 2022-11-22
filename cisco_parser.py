@@ -1,7 +1,7 @@
 import argparse
 from out_to_screen import *
 from outintofiles import *
-
+from check_duplicates import *
 from txtfsmparsers import *
 import os
 import pathlib
@@ -11,10 +11,12 @@ import pathlib
 devinfo = []
 
 def createParser():
-    parser = argparse.ArgumentParser(description='Утилита анализа конфигураций коммутаторов Cisco v0.1.')
+    parser = argparse.ArgumentParser(prog='CiscoParser', description='Утилита анализа конфигураций коммутаторов Cisco v0.2.', epilog = 'author: agulyaev@jet.su')
     parser.add_argument('mode', help='single - process single file | all - process all files in directory')
-    parser.add_argument('-r', '--showrun', required=False, help='Specify cisco config file made (show run output)', type=argparse.FileType())
-    parser.add_argument('-d', '--configdir', required=False, help='Specify directory with cisco config files', type=pathlib.Path)
+    parser.add_argument('-r', '--showrun', required=False, help='Specify single cisco config file (show run output)', type=argparse.FileType())
+    parser.add_argument('-d', '--configdir', required=False, help='Specify directory with many cisco config files', type=pathlib.Path)
+    parser.add_argument('-c', '--compcheck', required=False, help='Perform compliance check on config files', action='store_true')
+    parser.add_argument('-e', '--extractdata', required=False, help='Perform extraction of data from configs and diagnostic commands', action='store_true')
 
     # parser.add_argument('-i', '--showinterfaces', type=argparse.FileType())
     # parser.add_argument('-a', '--showall', action='store_const', const=True)
@@ -40,56 +42,20 @@ def main():
 
     if ((namespace.mode == 'single') and (not namespace.showrun == None)):
         cfilename = namespace.showrun
-        print("---------------------------------------------------------------------"
-              "-------------------------------------------------------------------------------"
-              "----------------------------------------------------------")
-        print("|  Num |                                   Filename                                  |     "
-              "   Hostname           |        IP       |      Domain Name    "
-              " |       Model        |     Serial   |  SW Version  |")
-        print("---------------------------------------------------------------------"
-              "-------------------------------------------------------------------------------"
-              "----------------------------------------------------------")
+        tbl_header_out2scr()
         devices_summary_output(1, namespace.showrun, cfilename.read())
-    else:
+        tbl_footer_out2scr()
+    elif ((namespace.mode == 'all') and (not namespace.configdir == None) and (namespace.extractdata == True)):
+        # собираем и выводим конфигурационную информацию
         list_of_files = os.listdir(namespace.configdir)
-        print("---------------------------------------------------------------------"
-              "-------------------------------------------------------------------------------"
-              "----------------------------------------------------------")
+        tbl_header_out2scr()
 
-        print("|  Num |                                   Filename                                  |     "
-              "   Hostname           |        IP       |      Domain Name    "
-              " |       Model        |     Serial   |  SW Version  |")
-        print("---------------------------------------------------------------------"
-              "-------------------------------------------------------------------------------"
-              "----------------------------------------------------------")
         # инициализация файлов с результатами работы скрипта
         init_files()
 
-        # создать папку для результатов, если она еще не создана
-        if not os.path.isdir("output"):
-            os.mkdir("output")
-        serial_list =[]
-
-
-        # поиск дубликатов конфигураций - конфигов с одним и тем же serial number
-        # заполняем массив с серийниками
-        for file in list_of_files:
-            if os.path.isfile(file):
-                with open(file, "r") as conffile:
-                    config = conffile.read()
-                    serial_list.append([])
-                    serial_list[list_of_files.index(file)].append(list_of_files.index(file)+1)
-                    serial_list[list_of_files.index(file)].append(file)
-                    serial_list[list_of_files.index(file)].append(obtain_serial(config))
-
-        # ищем дупликаты в массиве с серийниками
-        for num in range(0, len(serial_list)):
-            for num2 in range(num + 1, len(serial_list)):
-                if serial_list[num][2] == serial_list[num2][2]:
-                    print("Устраните дублирование конфигураций:")
-                    print("Файл: "+serial_list[num][1]+" Serial: " +serial_list[num][2])
-                    print("Файл: "+serial_list[num2][1]+" Serial: " +serial_list[num2][2])
-                    quit()
+        # проверяем дубликаты устройств по серийникам
+        if (not check_config_duplicates(list_of_files)):
+            quit()
 
         # Выводим базовую информацию по всем устройствам на экран и в файл
         for file in list_of_files:
@@ -118,19 +84,41 @@ def main():
                     int_config = get_interfaces_config(config, curr_path, file, devinfo)
                     interfaces_file_output(int_config)              # print interfaces info into file
 
-
-
-
         # conffile.close()
-        print("---------------------------------------------------------------------"
-              "-------------------------------------------------------------------------------"
-              "----------------------------------------------------------")
+        tbl_footer_out2scr()
+        tbl_files_info_out2scr()
 
-        print("Output:")
-        print("     - cparser.txt               - основные сведения о KE (inventory)")
-        print("     - all_nei_output.csv        - список активных портов, на которых CDP видит подключнное оборудование")
-        print("     - cdp_nei_output.csv        - список связей между устройствами, орпределенный с помощью")
-        print("     - many_macs.csv             - список портов, за которыми скрывается множество MAC-адресов")
+    elif ((namespace.mode == 'all') and (not namespace.configdir == None) and (namespace.compcheck == True)):
+        # проверяем compliance
+
+        list_of_files = os.listdir(namespace.configdir)
+        tbl_complheader_out2scr()
+
+        # инициализация файлов с результатами работы скрипта
+        init_comliance_files()
+
+        # проверяем дубликаты устройств по серийникам
+        if (not check_config_duplicates(list_of_files)):
+            quit()
+
+        # Выводим базовую информацию по всем устройствам на экран и в файл
+
+        for file in list_of_files:
+            if os.path.isfile(file):
+                with open(file, "r") as conffile:
+                    config = conffile.read()
+
+                    # формирование списка инвентаризационной информации
+#                    devices_summary_output(list_of_files.index(file), file, config)   # print to screen
+#                    ports_file_output(file, curr_path, config)                        # print into file
+
+                    # заполняем devinfo
+                    # devinfo=fill_devinfo_from_config(config)
+
+                    check_compliance(list_of_files.index(file), file, curr_path, config)
+
+        tbl_complfooter_out2scr()
+        tbl_files_info_out2scr()
 
 
 if __name__ == "__main__":

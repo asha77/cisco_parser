@@ -20,6 +20,113 @@ def obtain_hostname(config):
     else:
         return "Not Found"
 
+def obtain_timezone(config):
+    '''
+    Extract clock timezone value
+    '''
+
+    match = re.search("clock timezone (.*)", config)
+    if match:
+        return match.group(1).strip()
+    else:
+        return "Not Found"
+
+"""
+def obtain_secret_settings(config):
+    '''
+    Extract enable secret settings
+    '''
+
+    match = re.search("enable secret (\d) (.*)", config)
+    if match:
+        return match.group(1).strip()
+    else:
+        return "Not Found"
+"""
+
+def obtain_snmp_version(config):
+    '''
+    Extract SNMP version and sure it is encrypted (priv)
+    '''
+
+    match = re.search("snmp-server group (\w+) (\w+) priv (.*)", config)
+    if match:
+        return match.group(2).strip()
+    else:
+        return "Not Found"
+
+
+def check_source_route(config):
+    '''
+    Check source-routing disabled
+    '''
+
+    match = re.search("no ip source-route", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+def check_service_password_encryption(config):
+    '''
+    Check service password encryption
+    '''
+
+    match = re.search("service password-encryption", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+def check_weak_service_password_encryption(config):
+    '''
+    Check weak (reversive) Viginere password hash
+    '''
+
+    match = re.search("enable password (.*)", config)
+    if match:
+        return "Fail"
+    else:
+        return "Ok"
+
+
+def check_md5_service_password_encryption(config):
+    '''
+    Check strong MD5 password hash
+    '''
+
+    match = re.search("enable secret (\d) (.*)", config)
+    if match:
+        return str(match.group(1).strip())
+    else:
+        return "Fail"
+
+
+def check_ssh_version(config):
+    '''
+    Check using only ssh version 2
+    '''
+
+    match = re.search("ip ssh version (\d)", config)
+    if match:
+        if (match.group(1).strip() == '2'):
+            return "Ok(2)"
+        else:
+            return "Fail(1)"
+    else:
+        return "Fail"
+
+
+def check_logging_buffered(config):
+    '''
+    Check logging buffered size
+    '''
+
+    match = re.search("logging buffered (.*)", config)
+    if match:
+        return "Ok("+match.group(1).strip()+")"
+    else:
+        return "Fail"
 
 def obtain_model(config):
     '''

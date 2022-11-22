@@ -1,4 +1,5 @@
 import textfsm
+import os
 from regparsers import *
 
 interfaces = [
@@ -12,6 +13,9 @@ interfaces = [
 
 
 def init_files():
+    if not os.path.isdir("output"):
+        os.mkdir("output")
+
     # инициализация файла c основным выводом
     resfile = open("output\cparser_output.txt", "w")
     resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
@@ -40,6 +44,17 @@ def init_files():
         'access dot1x ports;Num of ints w/IP;Access Vlans;Native Vlans;Voice Vlans;Trunk Vlans;Vlan database;users '
         'id;iot_toro id;media_equip id;off_equip id;admin id;\n')
     resfile.close()
+
+def init_comliance_files():
+    if not os.path.isdir("output"):
+        os.mkdir("output")
+
+    # инициализация файла c основным выводом данных соответствия
+    resfile = open("output\compliance_output.txt", "w")
+    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
+    resfile.close()
+
+
 
 
 def all_neighbours_file_output(all_neighbours):
@@ -227,4 +242,68 @@ def normalize_interface_names(non_norm_int):
                     return return_this
     return "normalize_interface_names failed"
 
+
+
+def check_compliance(num, file, curr_path, config):
+    dev_access_template = open(curr_path + '\\nrt_dev_access.template')
+    dev_access_fsm = textfsm.TextFSM(dev_access_template)
+
+    dev_access_fsm.Reset()
+    dev_access = dev_access_fsm.ParseText(config)
+
+    # вывод в файл compliance информации
+#    resfile = open("output\compliance_output.txt", "a")
+
+    # def obtain_timezone(config):
+    # def obtain_secret_settings(config):
+    # def obtain_snmp_version(config):
+    # def check_source_route(config):
+    # def check_service_password_encryption(config):
+    # def check_weak_service_password_encryption(config):
+    # def check_md5_service_password_encryption(config):
+
+    print('| {0:4d} | {1:75s} | {2:25s} | {3:15s} | {4:20s} | {5:18s} | {6:10s} | {7:12s} | {8:12s} | {9:10s} | {10:10s} | {11:10s} | {12:10s} | {13:12s} | {14:6s} | {15:12s} |'.format(
+            num,
+            file,
+            obtain_hostname(config),
+            obtain_mng_ip_from_config(config),
+            obtain_domain(config),
+            obtain_model(config),
+            obtain_serial(config),
+            obtain_software_version(config),
+            obtain_timezone(config),
+            obtain_snmp_version(config),
+            check_source_route(config),
+            check_service_password_encryption(config),
+            check_weak_service_password_encryption(config),
+            check_md5_service_password_encryption(config),
+            check_ssh_version(config),
+            check_logging_buffered(config)
+        ))
+    dev_access_template.close()
+#    resfile.close()
+
+
+"""
+    for i in range(0, len(dev_access_template) - 1):
+        if (ports[i][2] == 'connected'):
+            ports_used = ports_used + 1
+
+        resfile.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1s};{9:1d};{10:1d};{11:1d};{12:1d};{13:1d} \n'.format(
+        file,
+        obtain_hostname(config),
+        obtain_domain(config),
+        obtain_mng_ip_from_config(config),
+        obtain_model(config),
+        obtain_serial(config),
+        obtain_software_version(config),
+        obtain_timezone(config),
+        obtain_snmp_version(config),
+        obtain_secret_settings(config),
+        check_source_route(config),
+        check_service_password_encryption(config),
+        check_weak_service_password_encryption(config),
+        check_md5_service_password_encryption(config)
+        ))
+"""
 

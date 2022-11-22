@@ -1,0 +1,11 @@
+Value LINE_NUM (.+)
+Value EXEC_TIME (\d+)
+Value PREF_TRANSPORT (\s+)
+Value TRANSPORT_INPUT (.+)
+
+
+Start
+	^line (con|vty) ${LINE_NUM}
+	^ exec-timeout ${EXEC_TIME} \d+
+	^ transport preferred ${PREF_TRANSPORT}
+	^ transport input ${TRANSPORT_INPUT} -> Record

@@ -212,3 +212,24 @@ def get_vlan_config(config, curr_path):
     vlan_template.close()
     return vlans_configuration
 
+
+
+
+def get_access_config(config, curr_path):
+    # Extract device access parameters
+
+    access_template = open(curr_path + '\\nrt_dev_access.template')
+    fsm = textfsm.TextFSM(access_template)
+    fsm.Reset()
+    access = fsm.ParseText(config)
+
+    access_config = []
+
+    for i in range(0, len(access)):
+        access_config.append([])
+        access_config[i].append(access[0])
+        access_config[i].append(access[1])
+        access_config[i].append(access[2])
+        access_config[i].append(access[3])
+    access_template.close()
+    return access_config
