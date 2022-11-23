@@ -92,7 +92,7 @@ def check_weak_service_password_encryption(config):
 
 def check_md5_service_password_encryption(config):
     '''
-    Check strong MD5 password hash
+    Check strong MD5 password hash (5 - md5, 7 - weak)
     '''
 
     match = re.search("enable secret (\d) (.*)", config)
@@ -127,6 +127,291 @@ def check_logging_buffered(config):
         return "Ok("+match.group(1).strip()+")"
     else:
         return "Fail"
+
+
+def check_ssh_timeout(config):
+    '''
+    Check ssh timeout
+    '''
+
+    match = re.search("ip ssh time-out (\d+)", config)
+    if match:
+        return "Ok("+match.group(1).strip()+")"
+    else:
+        return "Fail"
+
+def check_boot_network(config):
+    '''
+    Check boot network configuration
+    '''
+
+    match = re.search("boot network (.*)", config)
+    if match:
+        return "Fail"
+    else:
+        return "Ok"
+
+
+def check_service_config(config):
+    '''
+    Check service config configuration
+    '''
+
+    match = re.search("service config", config)
+    if match:
+        return "Fail"
+    else:
+        return "Ok"
+
+
+def check_cns_config(config):
+    '''
+    Check cns config configuration
+    '''
+
+    match = re.search("cns trusted-server config (.*)", config)
+    if match:
+        return "Fail"
+    else:
+        return "Ok"
+
+    # new block started here
+
+def check_syslog_timestamp(config):
+    '''
+    Check syslog format add timestamps to messages
+    '''
+
+    match = re.search("service timestamps debug datetime (.*)", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+
+def check_proxy_arp(config):
+    '''
+    Check for proxy arp configuration
+    '''
+
+    match = re.search("no ip proxy-arp", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+
+def check_logging_console(config):
+    '''
+    Check for console logging configuration (only critical recommended)
+    '''
+
+    match = re.search("logging console (\s+)", config)
+    if match:
+        return match.group(1).strip()
+    else:
+        return "Fail"
+
+
+def check_logging_syslog(config):
+    '''
+    Check for logging to syslog configuration (informational recommended)
+    '''
+
+    match = re.search("logging trap (\s+)", config)
+    if match:
+        return match.group(1).strip()
+    else:
+        return "Fail"
+
+
+def check_log_failures(config):
+    '''
+    Check for unsuccessfull login attempts to syslog
+    '''
+
+    match = re.search("login on-failure log every (\d+)", config)
+    if match:
+        return match.group(1).strip()
+    else:
+        return "Fail"
+
+
+def check_log_success(config):
+    '''
+    Check for success login message to syslog
+    '''
+
+    match = re.search("login on-success log", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+
+def check_tcp_keepalives_in(config):
+    '''
+    Check for keepalives-in option enabled
+    '''
+
+    match = re.search("tcp-keepalives-in", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+def check_tcp_keepalives_out(config):
+    '''
+    Check for keepalives-out option enabled
+    '''
+
+    match = re.search("service tcp-keepalives-out", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+
+def check_inetd_disable(config):
+    '''
+    Check for inetd services disable
+    '''
+
+    match = re.search("no ip inetd", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+
+def check_bootp_disable(config):
+    '''
+    Check for bootp protocol disable
+    '''
+
+    match = re.search("no ip bootp server", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+
+def check_authentication_retries(config):
+    '''
+    Check for authentication retries limit
+    '''
+
+    match = re.search("ip ssh authentication-retries (\d+)", config)
+    if match:
+        return match.group(1).strip()
+    else:
+        return "Fail"
+
+
+def check_weak_local_users_passwords(config):
+    '''
+    Check for weak passwords for local users
+    '''
+
+    match = re.search("username (\s+) password (.*)", config)
+    if match:
+        return "Fail"
+    else:
+        return "Ok"
+
+
+def check_motd_banner(config):
+    '''
+    Check for banner
+    '''
+
+    match = re.search("banner motd (.*)", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+
+def check_accounting_commands(config):
+    '''
+    Check for commands accounting
+    '''
+
+    match = re.search("aaa accounting commands(.+)", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+
+def check_connection_accounting(config):
+    '''
+    Check for accounting for commands
+    '''
+
+    match = re.search("aaa accounting connection(.+)", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+def check_exec_commands_accounting(config):
+    '''
+    Check for accounting for exec commands
+    '''
+
+    match = re.search("aaa accounting exec(.+)", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+def check_system_accounting(config):
+    '''
+    Check for system accounting
+    '''
+
+    match = re.search("aaa accounting system(.+)", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+def check_new_model(config):
+    '''
+    Check for system accounting
+    '''
+
+    match = re.search("aaa new-model", config)
+    if match:
+        return "Ok"
+    else:
+        return "Fail"
+
+def check_auth_login(config):
+    '''
+    Check for system accounting
+    '''
+
+    match = re.search("aaa authentication login (.+)", config)
+    if match:
+        return match.group(1).strip()
+    else:
+        return "Fail"
+
+def check_auth_login(config):
+    '''
+    Check for system accounting
+    '''
+
+    match = re.search("aaa authentication enable (.+)", config)
+    if match:
+        return match.group(1).strip()
+    else:
+        return "Fail"
+
+    # new block finished here
+
 
 def obtain_model(config):
     '''

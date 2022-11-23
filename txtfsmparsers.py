@@ -216,7 +216,7 @@ def get_vlan_config(config, curr_path):
 
 
 def get_access_config(config, curr_path):
-    # Extract device access parameters
+    # Extract vty device access parameters
 
     access_template = open(curr_path + '\\nrt_dev_access.template')
     fsm = textfsm.TextFSM(access_template)
@@ -227,9 +227,93 @@ def get_access_config(config, curr_path):
 
     for i in range(0, len(access)):
         access_config.append([])
-        access_config[i].append(access[0])
-        access_config[i].append(access[1])
-        access_config[i].append(access[2])
-        access_config[i].append(access[3])
+        access_config[i] = access[i]
+
+    if (len(access) == 0):
+        access_config.append([])
+        access_config[0].append("Not set")
+        access_config[0].append("Not set")
+        access_config[0].append("Not set")
+        access_config[0].append("Not set")
+        access_config[0].append("Not set")
+
+        access_config.append([])
+        access_config[1].append("Not set")
+        access_config[1].append("Not set")
+        access_config[1].append("Not set")
+        access_config[1].append("Not set")
+        access_config[1].append("Not set")
+
+    if (access_config[0][0] == ""):
+        access_config[0][0] = "Not set"
+
+    if (access_config[0][1] == ""):
+        access_config[0][1] = "Not set"
+
+    if (access_config[0][2] == ""):
+        access_config[0][2] = "Not set"
+
+    if (access_config[0][3] == ""):
+        access_config[0][3] = "Not set"
+
+    if (access_config[0][4] == ""):
+        access_config[0][4] = "Not set"
+
+    if (access_config[1][0] == ""):
+        access_config[1][0] = "Not set"
+
+    if (access_config[1][1] == ""):
+        access_config[1][1] = "Not set"
+
+    if (access_config[1][2] == ""):
+        access_config[1][2] = "Not set"
+
+    if (access_config[1][3] == ""):
+        access_config[1][3] = "Not set"
+
+    if (access_config[1][4] == ""):
+        access_config[1][4] = "Not set"
+
+    access_template.close()
+    return access_config
+
+def get_con_access_config(config, curr_path):
+    # Extract console device access parameters
+
+    access_template = open(curr_path + '\\nrt_dev_con_access.template')
+    fsm = textfsm.TextFSM(access_template)
+    fsm.Reset()
+    access = fsm.ParseText(config)
+
+    access_config = []
+
+    for i in range(0, len(access)):
+        access_config.append([])
+        access_config[i] = access[i]
+
+    if (len(access) == 0):
+        access_config.append([])
+        access_config[0].append("Not set")
+        access_config[0].append("Not set")
+        access_config[0].append("Not set")
+        access_config[0].append("Not set")
+        access_config[0].append("Not set")
+
+
+    if (access_config[0][0] == ""):
+        access_config[0][0] = "Not set"
+
+    if (access_config[0][1] == ""):
+        access_config[0][1] = "Not set"
+
+    if (access_config[0][2] == ""):
+        access_config[0][2] = "Not set"
+
+    if (access_config[0][3] == ""):
+        access_config[0][3] = "Not set"
+
+    if (access_config[0][4] == ""):
+        access_config[0][4] = "Not set"
+
     access_template.close()
     return access_config

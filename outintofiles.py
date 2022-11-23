@@ -1,6 +1,8 @@
 import textfsm
 import os
 from regparsers import *
+from txtfsmparsers import *
+
 
 interfaces = [
     [["Ethernet", "Eth"], "Eth"],
@@ -245,11 +247,8 @@ def normalize_interface_names(non_norm_int):
 
 
 def check_compliance(num, file, curr_path, config):
-    dev_access_template = open(curr_path + '\\nrt_dev_access.template')
-    dev_access_fsm = textfsm.TextFSM(dev_access_template)
-
-    dev_access_fsm.Reset()
-    dev_access = dev_access_fsm.ParseText(config)
+    dev_access = get_access_config(config, curr_path)
+    dev_con_access = get_con_access_config(config, curr_path)
 
     # вывод в файл compliance информации
 #    resfile = open("output\compliance_output.txt", "a")
@@ -262,7 +261,7 @@ def check_compliance(num, file, curr_path, config):
     # def check_weak_service_password_encryption(config):
     # def check_md5_service_password_encryption(config):
 
-    print('| {0:4d} | {1:75s} | {2:25s} | {3:15s} | {4:20s} | {5:18s} | {6:10s} | {7:12s} | {8:12s} | {9:10s} | {10:10s} | {11:10s} | {12:10s} | {13:12s} | {14:6s} | {15:12s} |'.format(
+    print('| {0:4d} | {1:75s} | {2:25s} | {3:15s} | {4:20s} | {5:18s} | {6:10s} | {7:12s} | {8:12s} | {9:10s} | {10:10s} | {11:10s} | {12:10s} | {13:12s} | {14:6s} | {15:25s} | {16:12s} | {17:6s} | {18:6s} | {19:6s} | {20:14s} | {21:14s} | {22:14s} | {23:14s} | {24:8s} | {25:14s} | {26:14s} | {27:14s} | {28:14s} |{29:8s} | {30:14s} | {31:14s} | {32:14s} | {33:14s} |'.format(
             num,
             file,
             obtain_hostname(config),
@@ -278,9 +277,26 @@ def check_compliance(num, file, curr_path, config):
             check_weak_service_password_encryption(config),
             check_md5_service_password_encryption(config),
             check_ssh_version(config),
-            check_logging_buffered(config)
-        ))
-    dev_access_template.close()
+            check_logging_buffered(config),
+            check_ssh_timeout(config),
+            check_boot_network(config),
+            check_service_config(config),
+            check_cns_config(config),
+            dev_con_access[0][1],
+            dev_con_access[0][2],
+            dev_con_access[0][3],
+            dev_con_access[0][4],
+            dev_access[0][0],
+            dev_access[0][1],
+            dev_access[0][2],
+            dev_access[0][3],
+            dev_access[0][4],
+            dev_access[1][0],
+            dev_access[1][1],
+            dev_access[1][2],
+            dev_access[1][3],
+            dev_access[1][4]
+    ))
 #    resfile.close()
 
 

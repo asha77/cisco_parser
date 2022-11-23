@@ -2,11 +2,12 @@ Value Required LINE_NUM (.*)
 Value EXEC_TIME (\d+)
 Value PREF_TRANSPORT (\s+)
 Value TRANSPORT_INPUT (.+)
-Value ACCESS_CLASS (\d+)
+Value LOGI_AUTH (.+)
 
 Start
-	^line vty ${LINE_NUM}
+	^line con ${LINE_NUM}
 	^\s+exec-timeout ${EXEC_TIME} \d+
 	^\s+transport preferred ${PREF_TRANSPORT}
-	^\s+ip access-class ${ACCESS_CLASS}
-	^\s+transport input ${TRANSPORT_INPUT} -> Record
+	^\s+transport input ${TRANSPORT_INPUT}
+	^\s+login authentication ${LOGI_AUTH}
+	^line -> Record
