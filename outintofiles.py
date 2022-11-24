@@ -52,11 +52,16 @@ def init_comliance_files():
         os.mkdir("output")
 
     # инициализация файла c основным выводом данных соответствия
-    resfile = open("output\compliance_output.txt", "w")
-    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
+    resfile = open("output\compliance_output.csv", "w")
+    resfile.write("Num;Filename;Hostname;IP;Domain Name;Model;Serial;SW Version;TimeZone;SNMP ver;No SrcRt;"
+                  "Pass Encr;Weak Encr;Strong Encr;SSH Chk;Logging buffered (level);SSH Timeout;Boot Cnf;"
+                  "ServCnf;CNSCnf;con0 exec-time;con0 trans pref;"
+                    "con0 trans inp;con0 logiauth;vty num;vty exec-time;vty trans pref;vty trans inp;"
+                    "vty acc class;vty num;vty exec-time;vty trans pref;vty trans inp;vty acc class;syslog TS;"
+                    "proxy arp;log con;log sysl;log fail;log succ;tcp-kp-in;tcp-kp-out "
+                    "inetd;bootp;auth_retr;weak_pass;motd;acc_com;acc_conn;"
+                    "acc_exec;acc_system;new model;auth_login;auth_enable;ntp srv\n")
     resfile.close()
-
-
 
 
 def all_neighbours_file_output(all_neighbours):
@@ -251,7 +256,7 @@ def check_compliance(num, file, curr_path, config):
     dev_con_access = get_con_access_config(config, curr_path)
 
     # вывод в файл compliance информации
-#    resfile = open("output\compliance_output.txt", "a")
+    resfile = open("output\compliance_output.csv", "a")
 
     # def obtain_timezone(config):
     # def obtain_secret_settings(config):
@@ -261,7 +266,29 @@ def check_compliance(num, file, curr_path, config):
     # def check_weak_service_password_encryption(config):
     # def check_md5_service_password_encryption(config):
 
-    print('| {0:4d} | {1:75s} | {2:25s} | {3:15s} | {4:20s} | {5:18s} | {6:10s} | {7:12s} | {8:12s} | {9:10s} | {10:10s} | {11:10s} | {12:10s} | {13:12s} | {14:6s} | {15:25s} | {16:12s} | {17:6s} | {18:6s} | {19:6s} | {20:14s} | {21:14s} | {22:14s} | {23:14s} | {24:8s} | {25:14s} | {26:14s} | {27:14s} | {28:14s} |{29:8s} | {30:14s} | {31:14s} | {32:14s} | {33:14s} |'.format(
+    # def check_syslog_timestamp(config)
+    # def check_proxy_arp(config)
+    # def check_logging_console(config)
+    # def check_logging_syslog(config)
+    # def check_log_failures(config)
+    # def check_log_success(config)
+    # def check_tcp_keepalives_in(config)
+    # def check_tcp_keepalives_out(config)
+    # def check_inetd_disable(config)
+    # def check_bootp_disable(config)
+    # def check_authentication_retries(config)
+    # def check_weak_local_users_passwords(config)
+    # def check_motd_banner(config)
+    # def check_accounting_commands(config)
+    # def check_connection_accounting(config)
+    # def check_exec_commands_accounting(config)
+    # def check_system_accounting(config)
+    # def check_new_model(config)
+    # def check_auth_login(config)
+    # def check_auth_enable(config):
+    # def get_ntp_servers(config)
+
+    print('| {0:4d} | {1:75s} | {2:25s} | {3:15s} | {4:20s} | {5:18s} | {6:10s} | {7:12s} | {8:12s} | {9:10s} | {10:10s} | {11:10s} | {12:10s} | {13:12s} | {14:6s} | {15:25s} | {16:12s} | {17:6s} | {18:6s} | {19:6s} | {20:14s} | {21:14s} | {22:14s} | {23:12s} | {24:8s} | {25:14s} | {26:14s} | {27:12s} | {28:12s} |{29:8s} | {30:14s} | {31:14s} | {32:12s} | {33:12s} | {34:10s} | {35:10s} | {36:10s} | {37:10s} | {38:10s} | {39:10s} | {40:10s} | {41:10s} | {42:10s} | {43:10s} | {44:10s} | {45:10s} | {46:10s} | {47:10s} | {48:10s} | {49:10s} | {50:10s} | {51:10s} | {52:29s} | {53:30s} | {54:65s} |'.format(
             num,
             file,
             obtain_hostname(config),
@@ -295,9 +322,89 @@ def check_compliance(num, file, curr_path, config):
             dev_access[1][1],
             dev_access[1][2],
             dev_access[1][3],
-            dev_access[1][4]
+            dev_access[1][4],
+            check_syslog_timestamp(config),
+            check_proxy_arp(config),
+            check_logging_console(config),
+            check_logging_syslog(config),
+            check_log_failures(config),
+            check_log_success(config),
+            check_tcp_keepalives_in(config),
+            check_tcp_keepalives_out(config),
+            check_inetd_disable(config),
+            check_bootp_disable(config),
+            check_authentication_retries(config),
+            check_weak_local_users_passwords(config),
+            check_motd_banner(config),
+            check_accounting_commands(config),
+            check_connection_accounting(config),
+            check_exec_commands_accounting(config),
+            check_system_accounting(config),
+            check_new_model(config),
+            check_auth_login(config),
+            check_auth_enable(config),
+            get_ntp_servers(config)
     ))
-#    resfile.close()
+
+    resfile.write('{0:4d};{1:75s};{2:25s};{3:15s};{4:20s};{5:18s};{6:10s};{7:12s};{8:12s};{9:10s};{10:10s};{11:10s};{12:10s};{13:12s};{14:6s};{15:25s};{16:12s};{17:6s};{18:6s};{19:6s};{20:14s};{21:14s};{22:14s};{23:12s};{24:8s}:{25:14s};{26:14s};{27:12s};{28:12s};{29:8s};{30:14s};{31:14s};{32:12s};{33:12s};{34:10s};{35:10s};{36:10s};{37:10s};{38:10s}:{39:10s};{40:10s};{41:10s};{42:10s};{43:10s};{44:10s};{45:10s};{46:10s};{47:10s};{48:10s};{49:10s};{50:10s};{51:10s};{52:29s};{53:30s};{54:65s}\n'.format(
+            num,
+            file,
+            obtain_hostname(config),
+            obtain_mng_ip_from_config(config),
+            obtain_domain(config),
+            obtain_model(config),
+            obtain_serial(config),
+            obtain_software_version(config),
+            obtain_timezone(config),
+            obtain_snmp_version(config),
+            check_source_route(config),
+            check_service_password_encryption(config),
+            check_weak_service_password_encryption(config),
+            check_md5_service_password_encryption(config),
+            check_ssh_version(config),
+            check_logging_buffered(config),
+            check_ssh_timeout(config),
+            check_boot_network(config),
+            check_service_config(config),
+            check_cns_config(config),
+            dev_con_access[0][1],
+            dev_con_access[0][2],
+            dev_con_access[0][3],
+            dev_con_access[0][4],
+            dev_access[0][0],
+            dev_access[0][1],
+            dev_access[0][2],
+            dev_access[0][3],
+            dev_access[0][4],
+            dev_access[1][0],
+            dev_access[1][1],
+            dev_access[1][2],
+            dev_access[1][3],
+            dev_access[1][4],
+            check_syslog_timestamp(config),
+            check_proxy_arp(config),
+            check_logging_console(config),
+            check_logging_syslog(config),
+            check_log_failures(config),
+            check_log_success(config),
+            check_tcp_keepalives_in(config),
+            check_tcp_keepalives_out(config),
+            check_inetd_disable(config),
+            check_bootp_disable(config),
+            check_authentication_retries(config),
+            check_weak_local_users_passwords(config),
+            check_motd_banner(config),
+            check_accounting_commands(config),
+            check_connection_accounting(config),
+            check_exec_commands_accounting(config),
+            check_system_accounting(config),
+            check_new_model(config),
+            check_auth_login(config),
+            check_auth_enable(config),
+            get_ntp_servers(config)
+    ))
+
+    resfile.close()
 
 
 """

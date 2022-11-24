@@ -379,7 +379,7 @@ def check_system_accounting(config):
 
 def check_new_model(config):
     '''
-    Check for system accounting
+    Check for aaa new-model enabled
     '''
 
     match = re.search("aaa new-model", config)
@@ -390,7 +390,7 @@ def check_new_model(config):
 
 def check_auth_login(config):
     '''
-    Check for system accounting
+    Check for login authentification
     '''
 
     match = re.search("aaa authentication login (.+)", config)
@@ -399,9 +399,9 @@ def check_auth_login(config):
     else:
         return "Fail"
 
-def check_auth_login(config):
+def check_auth_enable(config):
     '''
-    Check for system accounting
+    Check for authentification enabled
     '''
 
     match = re.search("aaa authentication enable (.+)", config)
@@ -409,6 +409,21 @@ def check_auth_login(config):
         return match.group(1).strip()
     else:
         return "Fail"
+
+def get_ntp_servers(config):
+    '''
+    get ntp servers ip
+    '''
+
+    match = re.findall("ntp server (.+)", config)
+    if match:
+        s = ""
+        for i in range(len(match)):
+            s = s + " "+match[i]+","
+        return s[:-1]
+    else:
+        return "Fail"
+
 
     # new block finished here
 
