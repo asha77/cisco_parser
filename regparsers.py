@@ -46,15 +46,51 @@ def obtain_secret_settings(config):
 
 def obtain_snmp_version(config):
     '''
-    Extract SNMP version and sure it is encrypted (priv)
+    Extract SNMP version and check if it is encrypted (priv)
     '''
 
-    match = re.search("snmp-server group (\w+) (\w+) priv (.*)", config)
-    if match:
-        return match.group(2).strip()
-    else:
-        return "Not Found"
+    # in Nexus: snmp-server user admin network-admin auth md5 0x661ce46ac35c6d0f8a7b37bbc6afcf2b priv aes-128 0x661ce46ac35c6d0f8a7b37bbc6afcf2b localizedkey
 
+    if ("N9K" in obtain_model(config)):
+        match = re.search("snmp-server (.+) auth md5 (.+) priv\s(\w+-\d+)\s(.+)\s(\w+)", config)
+        if match:
+            return "priv"
+        else:
+            match = re.search("snmp-server community\s(.+)\sR\w\s(\d+)", config)
+            if match:
+                return "v2c"+match.group(2).strip()
+            else:
+                return "Not Found"
+    elif (("WS-C" in obtain_model(config)) or ("C1000" in obtain_model(config))):
+        match = re.search("snmp-server group (\w+) (\w+) priv(.*)", config)
+        if match:
+            return "priv "+match.group(2).strip()
+        else:
+            match = re.search("snmp-server community\s(.+)(\sR\w\s(\d+))*", config)
+            if match:
+                return "v2c"
+            else:
+                return "Not Found"
+    elif (("C9200" in obtain_model(config)) or ("C9500" in obtain_model(config)) or ("C9300" in obtain_model(config))):
+        match = re.search("snmp-server group (\w+) (\w+) priv (.*)", config)
+        if match:
+            return "priv "+match.group(2).strip()
+        else:
+            match = re.search("snmp-server community\s(.+)(\sR\w\s(\d+))*", config)
+            if match:
+                return "v2c"
+            else:
+                return "Not Found"
+    else:
+        match = re.search("snmp-server group (\w+) (\w+) priv (.*)", config)
+        if match:
+            return "priv "+match.group(2).strip()
+        else:
+            match = re.search("snmp-server community\s(.+)(\sR\w\s(\d+))*", config)
+            if match:
+                return "v2c"
+            else:
+                return "Not Found"
 
 def check_source_route(config):
     '''
