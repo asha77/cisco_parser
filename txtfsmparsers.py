@@ -213,8 +213,6 @@ def get_vlan_config(config, curr_path):
     return vlans_configuration
 
 
-
-
 def get_access_config(config, curr_path):
     # Extract vty device access parameters
 
@@ -279,7 +277,6 @@ def get_access_config(config, curr_path):
 
 def get_con_access_config(config, curr_path):
     # Extract console device access parameters
-
     access_template = open(curr_path + '\\nrt_dev_con_access.template')
     fsm = textfsm.TextFSM(access_template)
     fsm.Reset()
@@ -299,7 +296,6 @@ def get_con_access_config(config, curr_path):
         access_config[0].append("Not set")
         access_config[0].append("Not set")
 
-
     if (access_config[0][0] == ""):
         access_config[0][0] = "Not set"
 
@@ -317,3 +313,46 @@ def get_con_access_config(config, curr_path):
 
     access_template.close()
     return access_config
+
+
+def get_tacacs_ip(config, curr_path):
+
+    return ips
+
+
+def get_tacacs_server_ips(config, curr_path):
+    '''
+    Get tacacs server IPs
+    '''
+
+    if ("N9K" in obtain_model(config)):
+        match = re.findall('^tacacs-server\shost\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, re.MULTILINE)
+        if match:
+            s = ""
+            for i in range(len(match)):
+                s = s + " "+match[i]+","
+            return s[:-1]
+        else:
+            return "Fail"
+    else:
+        # Extract vlan information (id, name) from configuration
+        tacacs_template = open(curr_path + '\\nrt_tacacs_servers.template')
+        fsm = textfsm.TextFSM(tacacs_template)
+        fsm.Reset()
+        ips = fsm.ParseText(config)
+        tacacs_template.close()
+
+        if ips:
+            s = ""
+            for i in range(len(ips)):
+                s = s + " "+ips[i][1]+","
+            return s[:-1]
+        else:
+            match = re.findall('^tacacs-server\shost\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, re.MULTILINE)
+            if match:
+                s = ""
+                for i in range(len(match)):
+                    s = s + " " + match[i] + ","
+                return s[:-1]
+            else:
+                return "Fail"

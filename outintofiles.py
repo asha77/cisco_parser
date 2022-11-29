@@ -58,9 +58,11 @@ def init_comliance_files():
                   "ServCnf;CNSCnf;con0 exec-time;con0 trans pref;"
                     "con0 trans inp;con0 logiauth;vty num;vty exec-time;vty trans pref;vty trans inp;"
                     "vty acc class;vty num;vty exec-time;vty trans pref;vty trans inp;vty acc class;syslog TS;"
-                    "proxy arp;log con;log sysl;log fail;log succ;tcp-kp-in;tcp-kp-out "
+                    "proxy arp;log con;log sysl;log fail;log succ;tcp-kp-in;tcp-kp-out;"
                     "inetd;bootp;auth_retr;weak_pass;motd;acc_com;acc_conn;"
-                    "acc_exec;acc_system;new model;auth_login;auth_enable;ntp srv\n")
+                    "acc_exec;acc_system;new model;auth_login;auth_enable;ntp srv;BPDU Guard;"
+                    "arp inspection;dhcp snoooping;tacacs server ips;disable aux;port security;"
+                    "storm control\n")
     resfile.close()
 
 
@@ -285,10 +287,21 @@ def check_compliance(num, file, curr_path, config):
     # def check_system_accounting(config)
     # def check_new_model(config)
     # def check_auth_login(config)
-    # def check_auth_enable(config):
+    # def check_auth_enable(config)
     # def get_ntp_servers(config)
+    # def check_bpduguard(filename)
+    # def check_iparp_inspect(filename)
+    # def check_dhcp_snooping(filename)
+    #  def check_tacacs_src_int(filename)
+    # def check_aux(filename)
+    # def obtain_mng_ip_from_config(filename)
+    # def check_portsecurity(filename)
+    # def check_stormcontrol(filename)
 
-    print('| {0:4d} | {1:75s} | {2:25s} | {3:15s} | {4:20s} | {5:18s} | {6:10s} | {7:12s} | {8:12s} | {9:10s} | {10:10s} | {11:10s} | {12:10s} | {13:12s} | {14:6s} | {15:25s} | {16:12s} | {17:6s} | {18:6s} | {19:6s} | {20:14s} | {21:14s} | {22:14s} | {23:12s} | {24:8s} | {25:14s} | {26:14s} | {27:12s} | {28:12s} |{29:8s} | {30:14s} | {31:14s} | {32:12s} | {33:12s} | {34:10s} | {35:10s} | {36:10s} | {37:10s} | {38:10s} | {39:10s} | {40:10s} | {41:10s} | {42:10s} | {43:10s} | {44:10s} | {45:10s} | {46:10s} | {47:10s} | {48:10s} | {49:10s} | {50:10s} | {51:10s} | {52:29s} | {53:30s} | {54:65s} |'.format(
+
+
+
+    print('| {0:4d} | {1:75s} | {2:25s} | {3:15s} | {4:20s} | {5:18s} | {6:10s} | {7:12s} | {8:12s} | {9:10s} | {10:10s} | {11:10s} | {12:10s} | {13:12s} | {14:6s} | {15:25s} | {16:12s} | {17:6s} | {18:6s} | {19:6s} | {20:14s} | {21:14s} | {22:14s} | {23:12s} | {24:8s} | {25:14s} | {26:14s} | {27:12s} | {28:12s} |{29:8s} | {30:14s} | {31:14s} | {32:12s} | {33:12s} | {34:10s} | {35:10s} | {36:10s} | {37:10s} | {38:10s} | {39:10s} | {40:10s} | {41:10s} | {42:10s} | {43:10s} | {44:10s} | {45:10s} | {46:10s} | {47:10s} | {48:10s} | {49:10s} | {50:10s} | {51:10s} | {52:34s} | {53:34s} | {54:65s} | {55:10s} | {56:10s} | {57:10s} | {58:40s} | {59:10s} | {60:10s} | {61:10s} |'.format(
             num,
             file,
             obtain_hostname(config),
@@ -343,10 +356,17 @@ def check_compliance(num, file, curr_path, config):
             check_new_model(config),
             check_auth_login(config),
             check_auth_enable(config),
-            get_ntp_servers(config)
+            get_ntp_servers(config),
+            check_bpduguard(config),
+            check_iparp_inspect(config),
+            check_dhcp_snooping(config),
+            get_tacacs_server_ips(config, curr_path),
+            check_aux(config),
+            check_portsecurity(config),
+            check_stormcontrol(config)
     ))
 
-    resfile.write('{0:4d};{1:75s};{2:25s};{3:15s};{4:20s};{5:18s};{6:10s};{7:12s};{8:12s};{9:10s};{10:10s};{11:10s};{12:10s};{13:12s};{14:6s};{15:25s};{16:12s};{17:6s};{18:6s};{19:6s};{20:14s};{21:14s};{22:14s};{23:12s};{24:8s}:{25:14s};{26:14s};{27:12s};{28:12s};{29:8s};{30:14s};{31:14s};{32:12s};{33:12s};{34:10s};{35:10s};{36:10s};{37:10s};{38:10s}:{39:10s};{40:10s};{41:10s};{42:10s};{43:10s};{44:10s};{45:10s};{46:10s};{47:10s};{48:10s};{49:10s};{50:10s};{51:10s};{52:29s};{53:30s};{54:65s}\n'.format(
+    resfile.write('{0:4d};{1:75s};{2:25s};{3:15s};{4:20s};{5:18s};{6:10s};{7:12s};{8:12s};{9:10s};{10:10s};{11:10s};{12:10s};{13:12s};{14:6s};{15:25s};{16:12s};{17:6s};{18:6s};{19:6s};{20:14s};{21:14s};{22:14s};{23:12s};{24:8s};{25:14s};{26:14s};{27:12s};{28:12s};{29:8s};{30:14s};{31:14s};{32:12s};{33:12s};{34:10s};{35:10s};{36:10s};{37:10s};{38:10s};{39:10s};{40:10s};{41:10s};{42:10s};{43:10s};{44:10s};{45:10s};{46:10s};{47:10s};{48:10s};{49:10s};{50:10s};{51:10s};{52:29s};{53:30s};{54:65s};{55:10s};{56:10s};{57:10s};{58:40s};{59:10s};{60:10s};{61:10s}\n'.format(
             num,
             file,
             obtain_hostname(config),
@@ -354,7 +374,7 @@ def check_compliance(num, file, curr_path, config):
             obtain_domain(config),
             obtain_model(config),
             obtain_serial(config),
-            obtain_software_version(config),
+            " "+obtain_software_version(config)+" ",
             obtain_timezone(config),
             obtain_snmp_version(config),
             check_source_route(config),
@@ -401,7 +421,14 @@ def check_compliance(num, file, curr_path, config):
             check_new_model(config),
             check_auth_login(config),
             check_auth_enable(config),
-            get_ntp_servers(config)
+            get_ntp_servers(config),
+            check_bpduguard(config),
+            check_iparp_inspect(config),
+            check_dhcp_snooping(config),
+            get_tacacs_server_ips(config, curr_path),
+            check_aux(config),
+            check_portsecurity(config),
+            check_stormcontrol(config)
     ))
 
     resfile.close()

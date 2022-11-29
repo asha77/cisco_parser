@@ -451,7 +451,7 @@ def get_ntp_servers(config):
     get ntp servers ip
     '''
 
-    match = re.findall("ntp server (.+)", config)
+    match = re.findall('^ntp server ([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, re.MULTILINE)
     if match:
         s = ""
         for i in range(len(match)):
@@ -535,6 +535,82 @@ def obtain_mng_ip_from_config(filename):
     match = re.search(" ip address ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
     if match:
         return match.group(1).strip()
+    else:
+        return "Not Found"
+
+
+def check_bpduguard(filename):
+    '''
+    Check bpduguard setting globally or on interface
+    '''
+
+    match = re.search("spanning-tree portfast bpduguard(.*)", filename)
+    if match:
+        return "Ok(glb pf)"
+    else:
+        match = re.search("spanning-tree bpduguard(.*)", filename)
+        if match:
+            return "Ок(int)"
+        else:
+            return "Not Found"
+
+
+def check_iparp_inspect(filename):
+    '''
+    Check ip arp inspection settings
+    '''
+
+    match = re.search("ip arp inspection", filename)
+    if match:
+        return "Ок"
+    else:
+        return "Not Found"
+
+
+def check_dhcp_snooping(filename):
+    '''
+    Check dhcp snooping settings
+    '''
+
+    match = re.search("ip dhcp snooping", filename)
+    if match:
+        return "Ок"
+    else:
+        return "Not Found"
+
+
+def check_aux(filename):
+    '''
+    Check aux settings
+    '''
+
+    match = re.search("line aux 0\n\sno exec", filename)
+    if match:
+        return "Ок"
+    else:
+        return "Not Found"
+
+
+def check_portsecurity(filename):
+    '''
+    Check port security settings
+    '''
+
+    match = re.findall("switchport port-security(.*)", filename)
+    if match:
+        return "Ok (" + str(len(match)) + ")"
+    else:
+        return "Not Found"
+
+
+def check_stormcontrol(filename):
+    '''
+    Check port security settings
+    '''
+
+    match = re.findall("storm-control(.*)", filename)
+    if match:
+        return "Ok (" + str(len(match)) + ")"
     else:
         return "Not Found"
 

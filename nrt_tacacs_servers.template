@@ -1,0 +1,6 @@
+Value Required SERV_NAME (.*)
+Value SERV_IP (.*)
+
+Start
+	^tacacs server ${SERV_NAME}
+	^\s+address ipv4 ${SERV_IP} -> Record
