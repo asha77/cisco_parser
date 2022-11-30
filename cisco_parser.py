@@ -6,12 +6,11 @@ from txtfsmparsers import *
 import os
 import pathlib
 
-#from manuf import manuf
 
 devinfo = []
 
 def createParser():
-    parser = argparse.ArgumentParser(prog='CiscoParser', description='Утилита анализа конфигураций коммутаторов Cisco v0.2.', epilog = 'author: agulyaev@jet.su')
+    parser = argparse.ArgumentParser(prog='CiscoParser', description='Утилита анализа конфигураций коммутаторов Cisco v0.3.', epilog = 'author: agulyaev@jet.su')
     parser.add_argument('mode', help='single - process single file | all - process all files in directory')
     parser.add_argument('-r', '--showrun', required=False, help='Specify single cisco config file (show run output)', type=argparse.FileType())
     parser.add_argument('-d', '--configdir', required=False, help='Specify directory with many cisco config files', type=pathlib.Path)

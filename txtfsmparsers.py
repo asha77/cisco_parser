@@ -315,11 +315,6 @@ def get_con_access_config(config, curr_path):
     return access_config
 
 
-def get_tacacs_ip(config, curr_path):
-
-    return ips
-
-
 def get_tacacs_server_ips(config, curr_path):
     '''
     Get tacacs server IPs
