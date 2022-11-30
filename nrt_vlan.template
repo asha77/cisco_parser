@@ -1,6 +1,0 @@
-Value VLAN_ID ([0-9]+)
-Value VLAN_Name (.+)
-
-Start
-	^(vlan create|vlan name) ${VLAN_ID} "${VLAN_Name}" -> Record
-	^(vlan create|vlan name) ${VLAN_ID} name "${VLAN_Name}" -> Record

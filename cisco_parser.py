@@ -6,7 +6,6 @@ from txtfsmparsers import *
 import os
 import pathlib
 
-#from manuf import manuf
 
 devinfo = []
 
