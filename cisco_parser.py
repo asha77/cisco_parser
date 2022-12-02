@@ -6,11 +6,11 @@ from txtfsmparsers import *
 import os
 import pathlib
 
-
 devinfo = []
 
-def createParser():
-    parser = argparse.ArgumentParser(prog='CiscoParser', description='Утилита анализа конфигураций коммутаторов Cisco v0.4.', epilog = 'author: agulyaev@jet.su')
+
+def createparser():
+    parser = argparse.ArgumentParser(prog='CiscoParser', description='Утилита анализа конфигураций коммутаторов Cisco v0.4.', epilog='author: agulyaev@jet.su')
     parser.add_argument('mode', help='single - process single file | all - process all files in directory')
     parser.add_argument('-r', '--showrun', required=False, help='Specify single cisco config file (show run output)', type=argparse.FileType())
     parser.add_argument('-d', '--configdir', required=False, help='Specify directory with many cisco config files', type=pathlib.Path)
@@ -26,12 +26,12 @@ def createParser():
 
 
 def main():
-#    print("Утилита анализа конфигураций коммутаторов Cisco v0.1.")
+    #    print("Утилита анализа конфигураций коммутаторов Cisco v0.1.")
 
-    parser = createParser()
+    parser = createparser()
     namespace = parser.parse_args()
 
-    if ((namespace.mode == 'single') and (namespace.showrun == None)):
+    if (namespace.mode == 'single') and (namespace.showrun is None):
         print("!!! Ошибка: Необходмо указать файл конфигурации Cisco для анализа (полный вывод show running-config)")
         exit()
 
@@ -39,12 +39,12 @@ def main():
     if namespace.configdir:
         os.chdir(namespace.configdir)
 
-    if ((namespace.mode == 'single') and (not namespace.showrun == None)):
+    if (namespace.mode == 'single') and (namespace.showrun is not None):
         cfilename = namespace.showrun
         tbl_header_out2scr()
         devices_summary_output(1, namespace.showrun, cfilename.read())
         tbl_footer_out2scr()
-    elif ((namespace.mode == 'all') and (not namespace.configdir == None) and (namespace.extractdata == True)):
+    elif (namespace.mode == 'all') and (namespace.configdir is not None) and (namespace.extractdata is True):
         # собираем и выводим конфигурационную информацию
         list_of_files = os.listdir(namespace.configdir)
         tbl_header_out2scr()
@@ -53,7 +53,7 @@ def main():
         init_files()
 
         # проверяем дубликаты устройств по серийникам
-        if (not check_config_duplicates(list_of_files)):
+        if not check_config_duplicates(list_of_files):
             quit()
 
         # Выводим базовую информацию по всем устройствам на экран и в файл
@@ -67,10 +67,10 @@ def main():
                     ports_file_output(file, curr_path, config)                        # print into file
 
                     # заполняем devinfo
-                    devinfo=fill_devinfo_from_config(config)
+                    devinfo = fill_devinfo_from_config(config)
 
                     # формирование перечня cdp-связности
-                    cdp_neighbours=get_cdp_neighbours(config, curr_path, file, devinfo)
+                    cdp_neighbours = get_cdp_neighbours(config, curr_path, file, devinfo)
 
                     # формирование перечня CDP-соседей
                     all_neighbours_file_output(cdp_neighbours)       # print ports with neighbours into file
@@ -87,7 +87,7 @@ def main():
         tbl_footer_out2scr()
         tbl_files_info_out2scr()
 
-    elif ((namespace.mode == 'all') and (not namespace.configdir == None) and (namespace.compcheck == True)):
+    elif (namespace.mode == 'all') and (namespace.configdir is not None) and (namespace.compcheck is True):
         # проверяем compliance
 
         list_of_files = os.listdir(namespace.configdir)
@@ -97,7 +97,7 @@ def main():
         init_comliance_files()
 
         # проверяем дубликаты устройств по серийникам
-        if (not check_config_duplicates(list_of_files)):
+        if not check_config_duplicates(list_of_files):
             quit()
 
         # Выводим базовую информацию по всем устройствам на экран и в файл
