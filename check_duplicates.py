@@ -6,14 +6,19 @@ def check_config_duplicates(list_of_files):
     # поиск дубликатов конфигураций - конфигов с одним и тем же serial number
     serial_list = []
     # заполняем массив с серийниками
+    file: object
+
+    filenum = 0
+
     for file in list_of_files:
         if os.path.isfile(file):
             with open(file, "r") as conffile:
                 config = conffile.read()
                 serial_list.append([])
-                serial_list[list_of_files.index(file)].append(list_of_files.index(file) + 1)
-                serial_list[list_of_files.index(file)].append(file)
-                serial_list[list_of_files.index(file)].append(obtain_serial(config))
+                serial_list[filenum].append(filenum + 1)
+                serial_list[filenum].append(file)
+                serial_list[filenum].append(obtain_serial(config))
+                filenum = filenum + 1
 
     # ищем дупликаты в массиве с серийниками
     for num in range(0, len(serial_list)):

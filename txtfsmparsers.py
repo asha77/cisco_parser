@@ -20,7 +20,7 @@ def get_cdp_neighbours(config, curr_path, file, devinfo):
         all_neighbours[len(all_neighbours) - 1].append(devinfo[1])
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][4])
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][1])
-        all_neighbours[len(all_neighbours) - 1].append(neighbours[i][3])
+        all_neighbours[len(all_neighbours) - 1].append(strip_cisco_from_cdp_name(neighbours[i][3]))
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][2])
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][5])
     if i != 0:

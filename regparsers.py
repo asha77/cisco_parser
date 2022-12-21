@@ -446,6 +446,7 @@ def check_auth_enable(config):
     else:
         return "Fail"
 
+
 def get_ntp_servers(config):
     '''
     get ntp servers ip
@@ -840,3 +841,28 @@ def is_logical_int(intname):
         return True
     else:
         return False
+
+
+def get_only_name(name):
+    '''
+    Cut domain name from device name
+    '''
+
+    if (not name.find('.') == -1):
+        return name[0:name.find('.')]
+    else:
+        return name
+
+
+def strip_cisco_from_cdp_name(name):
+    '''
+    Cut "cisco " name from device name
+    '''
+
+    if (not name.find('cisco ') == -1):
+        return name[len('cisco '):]
+    elif (not name.find('Cisco ') == -1):
+        return name[len('Cisco '):]
+    else:
+        return name
+

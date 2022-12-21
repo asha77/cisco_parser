@@ -19,7 +19,7 @@ def init_files():
         os.mkdir("output")
 
     # инициализация файла c основным выводом
-    resfile = open("output\cparser_output.txt", "w")
+    resfile = open("output\cparser_output.csv", "w")
     resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
     resfile.close()
 
@@ -131,7 +131,7 @@ def ports_file_output(file, curr_path, config):
     port_template = open(curr_path + '\\nrt_interfaces.template')
     port_fsm = textfsm.TextFSM(port_template)
 
-    resfile = open("output\cparser_output.txt", "a")
+    resfile = open("output\cparser_output.csv", "a")
 #    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
 
     #  проверяем сколько портов активно на коммутаторе
@@ -153,7 +153,7 @@ def ports_file_output(file, curr_path, config):
         obtain_domain(config),
         obtain_model(config),
         obtain_serial(config),
-        obtain_software_version(config),
+        " " + obtain_software_version(config),
         ports_all,
         ports_used))
     port_template.close()
