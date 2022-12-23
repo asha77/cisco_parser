@@ -1,10 +1,23 @@
-# Yet Another Cisco Зarser script (Y.A.C.P.S.)
+# YACPS = Yet Another Cisco Parser Script 
 
 
 
+## Features
+YACPS can:
+
+
+
+## TODO
+erverv
 
 ## List of recommended commands to be collected from devices (required commands are in bold):
 ** Cisco Switches
+
+show tech-support
+**show int status**
+** show int description **
+
+
 ```
 show tech-support
 **show int status**
@@ -45,13 +58,13 @@ show ip eigrp interfaces
 show ip eigrp topology
 show ip bgp summary
 show ip bgp vpnv4 all summary
-show log
+** show log **
 show ntp status
 show ntp associations
 show ntp peer-status
 show processes cpu sorted
 show processes memory sorted
-show dot1x interface detail
+** show dot1x interface detail **
 ```
 
 ** Cisco Routers **
@@ -60,25 +73,25 @@ show tech-support
 show int status
 show int description
 show ip interface brief
-show int switchport
-show int trunk
-show vlan
+** show int switchport **
+** show int trunk **
+** show vlan **
 show protocols
 show ip protocols
-show cdp neighbors
+** show cdp neighbors **
 show cdp neighbors detail
-show lldp neighbors
+** show lldp neighbors **
 show spanning-tree
 show spanning-tree bridge
 show spanning-tree active
-show env all
-show etherchannel summary
-show port-channel summary
-show int transceiver
-show log
+** show env all **
+** show etherchannel summary **
+** show port-channel summary **
+** show int transceiver **
+** show log **
 show ip protocols
 show ip route
-show ip route vrf *
+** show ip route vrf * **
 show ip route summary
 show ip ospf
 show ip ospf neighbor
