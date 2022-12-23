@@ -20,7 +20,7 @@ YACPS still can not:
 - many things
 
 ## List of recommended commands to be collected from devices (required commands are in bold):
-** Cisco Switches
+**Cisco Switches**
 ```
 show tech-support
 **show int status**
@@ -73,7 +73,7 @@ show processes memory sorted
 ** show dot1x interface detail **
 ```
 
-** Cisco Routers **
+**Cisco Routers**
 ```
 show tech-support
 show int status
@@ -112,7 +112,7 @@ show ip bgp summary
 show ip bgp vpnv4 all summary
 ```
 
-** Cisco PIX/ASA Firewalls **
+**Cisco PIX/ASA Firewalls**
 ```
 show tech-support 
 show firewall
