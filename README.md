@@ -1,24 +1,30 @@
 # YACPS = Yet Another Cisco Parser Script 
 
+YACPS is a python cli script used to extract various information from configs and diagnostic commands output from cisco network devices (mainly switches). 
+Script use text files with configuration asnd result of commands executed on devices - one file per device. It tries to process all files in a given folder. 
+File name and order of commands does not matters. 
 
 
 ## Features
 YACPS can:
-
-
+- get inventory from command's output
+- get connectivity information based on cdp
+- perform some security compliance checking 
+- create L1 scheme for [drawio](https://app.diagrams.net)
+- check for duplicate devices (based on unique device's serial numbers)
 
 ## TODO
-erverv
+YACPS still can not:
+- understand portchannels
+- get actual link speed and type (currently script use port type)
+- many things
 
 ## List of recommended commands to be collected from devices (required commands are in bold):
 ** Cisco Switches
-
+```
 show tech-support
 **show int status**
 ** show int description **
-
-
-```
 show tech-support
 **show int status**
 ** show int description **
