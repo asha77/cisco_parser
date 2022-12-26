@@ -31,7 +31,7 @@ Draw diagram from all files in directory:
 `cisco_parser.py all -p -d "c:\tmp\cisco"`
 
 5. Inspect python console messages.
-6. Check "output" subfolder in "c:\tmp\cisco" for results.
+6. Check "output" subfolder in `c:\tmp\cisco` for results.
 7. In any problems - open git ticket or write asha77@gmail.com with questions.
 
 
