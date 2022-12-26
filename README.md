@@ -22,13 +22,13 @@ YACPS can:
 3. Open command line, cd to directory with YACPS.
 4. Run YACPS:
 Extract data from all files in directory:
-'cisco_parser.py all -e -d "c:\tmp\cisco"'
+`cisco_parser.py all -e -d "c:\tmp\cisco"`
 
 Check compliance from all files in directory:
-'cisco_parser.py all -c -d "c:\tmp\cisco"'
+`cisco_parser.py all -c -d "c:\tmp\cisco"`
 
 Draw diagram from all files in directory:
-'cisco_parser.py all -p -d "c:\tmp\cisco"'
+`cisco_parser.py all -p -d "c:\tmp\cisco"`
 
 5. Inspect python console messages.
 6. Check "output" subfolder in "c:\tmp\cisco" for results.
