@@ -149,7 +149,7 @@ def main():
                     if filter_devices(get_only_name(devinfo[0])):
                         lbtext = get_only_name(devinfo[0]) + "\n" + devinfo[3]
                         lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
-                        diagram.add_node(id=get_only_name(devinfo[0]), label=lbtext, style=get_dev_style_from_model(devinfo[3]))
+                        diagram.add_node(id=get_only_name(devinfo[0]), label=lbtext, style=get_dev_style_from_model(devinfo[3])[0], width=(get_dev_style_from_model(devinfo[3])[1]), height=(get_dev_style_from_model(devinfo[3])[2]))
                     else:
                         print("skipped: " + get_only_name(devinfo[0]))
 
@@ -172,7 +172,7 @@ def main():
 
         diagram.layout(algo="drl")
         diagram.dump_file(filename="network_graph.drawio", folder="./output/")
-
+        tbl_files_info_out2scr()
 
 if __name__ == "__main__":
     main()

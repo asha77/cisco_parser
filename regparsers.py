@@ -530,7 +530,7 @@ def obtain_software_version(config):
 
 def obtain_mng_ip_from_config(filename):
     '''
-    Extract mng ip - TODO: need to rethink - return just first ip on interface !!!!!
+    Extract mng ip - TODO: need to rethink - it returns just first ip on interface !!!!!
     '''
 
     match = re.search(" ip address ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)

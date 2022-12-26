@@ -9,17 +9,17 @@ def get_dev_style_from_model(model):
     other_device_style = "rounded=1;whiteSpace=wrap;html=1;"
 
     if ("N9K" in model):
-        return nexus_switch_style
+        return [nexus_switch_style, 120, 60]
     elif (("WS-C" in model) or ("C1000" in model) or ("C9200" in model)):
-        return l2_switch_style
+        return [l2_switch_style, 120, 60]
     elif (("C9500" in model) or ("C9300" in model)):
-        return l3_switch_style
+        return [l3_switch_style, 120, 120]
     elif (("28" in model) or ("29" in model) or ("39" in model) or ("433" in model) or ("422" in model)  or ("432" in model)):
-        return router_style
+        return [router_style, 120, 60]
     elif (("CGS" in model) or ("IE-" in model)):
-        return ind_switch_style
+        return [ind_switch_style, 120, 60]
     else:
-        return other_device_style
+        return [other_device_style, 120, 60]
 
 
 def shorten_ifname(ifname):
@@ -44,17 +44,14 @@ def filter_devices(devname):
 
 def get_link_style_from_model(ints):
     # TODO: make more link styles based on actual type of transceivers, not only port type
-
     # default link style
-    new_link_style = "endArrow=classic;fillColor=#f8cecc;strokeColor=#FF3399;dashed=1;edgeStyle=entityRelationEdgeStyle;startArrow=diamondThin;startFill=1;endFill=0;strokeWidth=5;"
+    new_link_style = "endArrow=none;fillColor=#f8cecc;strokeColor=#FF3399;dashed=1;edgeStyle=entityRelationEdgeStyle;startArrow=none;startFill=0;endFill=0;strokeWidth=5;noEdgeStyle=1;"
 
     # special link styles
     gig_RJ45_link_style = "endArrow=none;fillColor=#f8cecc;strokeColor=default;startArrow=none;startFill=0;endFill=0;strokeWidth=3;rounded=0;endSize=0;startSize=0;edgeStyle=orthogonalEdgeStyle;"
-    ten_gig_link_style = "endArrow=classic;fillColor=#f8cecc;strokeColor=#FF3399;dashed=1;edgeStyle=entityRelationEdgeStyle;startArrow=diamondThin;startFill=1;endFill=0;strokeWidth=5;"
-    twe_gig_fast_link_style = "endArrow=classic;fillColor=#f8cecc;strokeColor=#FF3399;dashed=1;edgeStyle=entityRelationEdgeStyle;startArrow=diamondThin;startFill=1;endFill=0;strokeWidth=5;"
-    fast_link_style = "endArrow=classic;fillColor=#f8cecc;strokeColor=#FF3399;dashed=1;edgeStyle=entityRelationEdgeStyle;startArrow=diamondThin;startFill=1;endFill=0;strokeWidth=5;"
-
-
+    ten_gig_link_style = "endArrow=none;fillColor=#f8cecc;strokeColor=#FF0000;startArrow=none;startFill=0;endFill=0;strokeWidth=5;rounded=0;endSize=0;startSize=0;edgeStyle=orthogonalEdgeStyle;"
+    twe_gig_fast_link_style = "endArrow=none;fillColor=#f8cecc;strokeColor=#009900;startArrow=none;startFill=0;endFill=0;strokeWidth=7;rounded=0;endSize=0;startSize=0;edgeStyle=orthogonalEdgeStyle;"
+    fast_link_style = "endArrow=none;fillColor=#f8cecc;strokeColor=default;startArrow=none;startFill=0;endFill=0;strokeWidth=1;rounded=0;endSize=0;startSize=0;jumpSize=0;edgeStyle=orthogonalEdgeStyle;"
 
     if ("TenGigabitEthernet" in ints):
         return ten_gig_link_style

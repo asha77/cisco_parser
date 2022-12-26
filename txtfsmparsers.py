@@ -94,9 +94,6 @@ def get_interfaces_config(config, curr_path, file, devinfo):
     # [17] - vlan id of off_equip vlan
     # [18] - vlan id of admin vlan
 
-    # TODO: do we need [i] everywhere here?
-#    interfaces_configuration.append([])
-# [i]
     interfaces_configuration.append(file)
     interfaces_configuration.append(devinfo[0])
     interfaces_configuration.append(get_type_of_sw_from_hostname(devinfo[0]))
