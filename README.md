@@ -16,7 +16,7 @@ YACPS can:
 
 
 ## Using
-1. Put all files with data from switches into one folder (for example, c:\tmp\cisco)
+1. Put all files with data from switches into one folder (for example, `c:\tmp\cisco`)
 2. Get YACPS: 
 `git clone https://github.com/asha77/cisco_parser.git`
 3. Open command line, cd to directory with YACPS.
