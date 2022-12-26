@@ -1,9 +1,10 @@
 # YACPS = Yet Another Cisco Parser Script  (aka Cisco parser)
 
-YACPS is a python cli script used to extract various information from configs and diagnostic commands output from cisco network devices (mainly switches). 
-Script use text files with configuration asnd result of commands executed on devices - one file per device. It tries to process all files in a given folder. 
+YACPS is a python cli script for extracting various information from configs and diagnostic commands output on cisco network devices (mostly on switches). 
+Script use text files with saved configuration and output from commands  - one file per device. It tries to process all files in a given folder. 
 File name and order of commands does not matters. 
 List of recommended commands provided [here](https://github.com/asha77/cisco_parser/blob/master/README.md#list-of-recommended-commands-to-be-collected-from-devices-required-commands-are-in-bold).
+Commands can be done manually on devices, but it is strongly recommended to use automated data collection (another script, utility, ansible, etc.) to do this job. It should made   
 
 
 ## Features
@@ -32,7 +33,10 @@ Draw diagram from all files in directory:
 
 5. Inspect python console messages.
 6. Check "output" subfolder in `c:\tmp\cisco` for results.
-7. In any problems - open git ticket or write asha77@gmail.com with questions.
+7. If any problems:
+ - try to research problem, correct and provide patch or correction
+ - open git ticket with description
+ - or write asha77@gmail.com with questions.
 
 
 ## TODO
