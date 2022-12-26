@@ -1,4 +1,4 @@
-# YACPS = Yet Another Cisco Parser Script 
+# YACPS = Yet Another Cisco Parser Script  (aka Cisco parser)
 
 YACPS is a python cli script used to extract various information from configs and diagnostic commands output from cisco network devices (mainly switches). 
 Script use text files with configuration asnd result of commands executed on devices - one file per device. It tries to process all files in a given folder. 
@@ -8,17 +8,40 @@ List of recommended commands provided [here](https://github.com/asha77/cisco_par
 
 ## Features
 YACPS can:
+- check for duplicate devices (based on unique device's serial numbers)
 - get inventory from command's output
 - get connectivity information based on cdp
 - perform some security compliance checking 
 - create L1 scheme for [drawio](https://app.diagrams.net)
-- check for duplicate devices (based on unique device's serial numbers)
+
+
+## Using
+1. Put all files with data from switches into one folder (for example, c:\tmp\cisco)
+2. Get YACPS: 
+`git clone https://github.com/asha77/cisco_parser.git`
+3. Open command line, cd to directory with YACPS.
+4. Run YACPS:
+Extract data from all files in directory:
+'cisco_parser.py all -e -d "c:\tmp\cisco"'
+
+Check compliance from all files in directory:
+'cisco_parser.py all -c -d "c:\tmp\cisco"'
+
+Draw diagram from all files in directory:
+'cisco_parser.py all -p -d "c:\tmp\cisco"'
+
+5. Inspect python console messages.
+6. Check "output" subfolder in "c:\tmp\cisco" for results.
+7. In any problems - open git ticket or write asha77@gmail.com with questions.
+
 
 ## TODO
 YACPS still can not:
 - understand portchannels
 - get actual link speed and type (currently script use port type)
-- many things
+- collect data from switches (it should be separate script or ansible)
+- work with Cisco firewalls (they do not use cdp) 
+- many things 
 
 ## List of recommended commands to be collected from devices (required commands are in bold):
 **Cisco Switches**
