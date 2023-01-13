@@ -50,8 +50,7 @@ YACPS still can not:
 ## List of recommended commands to be collected from devices (required commands are in bold):
 **Cisco Switches**
 ```
-show tech-support
-**show int status**
+**show interfaces status**
 ** show int description **
 show tech-support
 **show int status**
