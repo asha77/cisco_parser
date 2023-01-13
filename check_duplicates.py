@@ -24,9 +24,14 @@ def check_config_duplicates(list_of_files):
     for num in range(0, len(serial_list)):
         for num2 in range(num + 1, len(serial_list)):
             if serial_list[num][2] == serial_list[num2][2]:
-                print("Устраните дублирование конфигураций:")
-                print("Файл: " + serial_list[num][1] + " Serial: " + serial_list[num][2])
-                print("Файл: " + serial_list[num2][1] + " Serial: " + serial_list[num2][2])
+                if serial_list[num][2] == 'Not Found':
+                    print("В файлах не найдены серийные номера, проблема с идентификацией устройств:")
+                    print("Файл: " + serial_list[num][1] + " Serial: " + serial_list[num][2])
+                    print("Файл: " + serial_list[num2][1] + " Serial: " + serial_list[num2][2])
+                else:
+                    print("Устраните дублирование конфигураций:")
+                    print("Файл: " + serial_list[num][1] + " Serial: " + serial_list[num][2])
+                    print("Файл: " + serial_list[num2][1] + " Serial: " + serial_list[num2][2])
                 return(False)
 
     return(True)

@@ -140,6 +140,8 @@ def ports_file_output(file, curr_path, config):
 
     ports_used = 0
     ports_all = len(ports) - 1
+# ToDo: сортировать по именам при выводе в файл!!!
+# ToDo: подумать над сравнением двух выводов inventory!!!
 
     for i in range(0, len(ports) - 1):
         if (ports[i][2] == 'connected'):

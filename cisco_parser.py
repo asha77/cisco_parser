@@ -146,12 +146,21 @@ def main():
                     # заполняем devinfo
                     devinfo = fill_devinfo_from_config(config)
 
+                    """
+                    devinfo = [obtain_hostname(config),
+                                obtain_mng_ip_from_config(config),
+                                obtain_domain(config),
+                                obtain_model(config),
+                                obtain_serial(config),
+                                obtain_software_version(config)]
+                    """
+
                     if filter_devices(get_only_name(devinfo[0])):
-                        lbtext = get_only_name(devinfo[0]) + "\n" + devinfo[3]
-                        lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
-                        diagram.add_node(id=get_only_name(devinfo[0]), label=lbtext, style=get_dev_style_from_model(devinfo[3])[0], width=(get_dev_style_from_model(devinfo[3])[1]), height=(get_dev_style_from_model(devinfo[3])[2]))
+                        lbtext = get_only_name(devinfo[0]) + "&lt;div&gt;" + devinfo[3]
+#                        lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
+                        diagram.add_node(id=devinfo[0]+"."+devinfo[2], label=lbtext, style=get_dev_style_from_model(devinfo[3])[0], width=(get_dev_style_from_model(devinfo[3])[1]), height=(get_dev_style_from_model(devinfo[3])[2]), data={"IP": devinfo[1], "Serial": devinfo[4]})
                     else:
-                        print("skipped: " + get_only_name(devinfo[0]))
+                        print("skipped: " + devinfo[0])
 
         # Добавляем на диаграмму все связи между устройствами
         for file in list_of_files:
@@ -163,12 +172,13 @@ def main():
                     # формирование перечня cdp-связности
                     cdp_neighbours = get_cdp_neighbours(config, curr_path, file, devinfo)
 
+# ToDo: provide actual data info in links
                     for i in range(0, len(cdp_neighbours)):
                         if (filter_devices(get_only_name(cdp_neighbours[i][1])) and filter_devices(get_only_name(cdp_neighbours[i][5]))):
                             linkstyle = get_link_style_from_model(cdp_neighbours[i][4])
-                            diagram.add_link(get_only_name(cdp_neighbours[i][1]), get_only_name(cdp_neighbours[i][5]), src_label=shorten_ifname(cdp_neighbours[i][4]), trgt_label=shorten_ifname(cdp_neighbours[i][8]), style=linkstyle, data={"speed": "1G", "media": "10G-LR"})
+                            diagram.add_link(cdp_neighbours[i][1], cdp_neighbours[i][5], src_label=shorten_ifname(cdp_neighbours[i][4]), trgt_label=shorten_ifname(cdp_neighbours[i][8]), style=linkstyle, data={"speed": "1G", "media": "10G-LR"})
                         else:
-                            print("skipped: " + get_only_name(cdp_neighbours[i][1]) + " - " + get_only_name(cdp_neighbours[i][5]))
+                            print("skipped: " + cdp_neighbours[i][1] + " - " + cdp_neighbours[i][5])
 
         diagram.layout(algo="drl")
         diagram.dump_file(filename="network_graph.drawio", folder="./output/")
