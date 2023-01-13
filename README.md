@@ -52,9 +52,7 @@ YACPS still can not:
 ```
 **show interfaces status**
 ** show int description **
-show tech-support
 **show int status**
-** show int description **
 ** show int switchport **
 ** show int trunk **
 ** show vlan **
