@@ -47,6 +47,7 @@ def init_files():
         'id;iot_toro id;media_equip id;off_equip id;admin id;\n')
     resfile.close()
 
+
 def init_comliance_files():
     if not os.path.isdir("output"):
         os.mkdir("output")
@@ -217,12 +218,14 @@ def interfaces_file_output(int_config):
         ))
     f_interfaces.close()
 
+
 # Create a function to easily repeat on many lists:
 def ListToFormattedString(alist):
     # Each item is right-adjusted, width=3
     formatted_list = ['{:>3}' for item in alist]
     s = ','.join(formatted_list)
     return s.format(*alist)
+
 
 def check_macs(macs, count):
     mm_macs = []

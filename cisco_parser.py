@@ -30,8 +30,6 @@ def createparser():
 
 
 def main():
-    #    print("Утилита анализа конфигураций коммутаторов Cisco v0.1.")
-
     parser = createparser()
     namespace = parser.parse_args()
 
@@ -184,10 +182,9 @@ def main():
         diagram.dump_file(filename="network_graph.drawio", folder="./output/")
         tbl_files_info_out2scr()
 
+
 if __name__ == "__main__":
     main()
-
-
 
 
 """

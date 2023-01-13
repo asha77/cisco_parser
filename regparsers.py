@@ -474,7 +474,10 @@ def obtain_model(config):
     if match:
         return match.group(1).strip()
     else:
-        match = re.search("\wisco (.*) \(.*\) \w* (with )*\d+K\/\d+K bytes of memory.", config)
+#        match = re.search("\wisco (.*) \(.*\) \w* (with )*\d+K\/\d+K bytes of memory.", config)
+
+        match = re.search("\wisco (\S+) .* (with)*\d+K\/\d+K bytes of memory.", config)
+
         if match:
             return match.group(1).strip()
         else:
@@ -517,15 +520,44 @@ def obtain_software_version(config):
     Extract software version
     '''
 
-    match = re.search("Version (.*),", config)
-    if match:
-        return match.group(1).strip()
-    else:
+    family = obtain_software_family(config)
+
+    if family == "IOS XE":
+        match = re.search("Cisco .+ Version ([0-9.()A-Za-z]+)", config)
+        if match:
+            return match.group(1).strip()
+    elif family == "IOS":
+        match = re.search("Cisco .+ Version ([0-9.()A-Za-z]+)", config)
+        if match:
+            return match.group(1).strip()
+    elif family == "NX-OS":
         match = re.search("\ *NXOS: version (.*)", config)
         if match:
             return match.group(1).strip()
+    else:
+        return "Not Found"
+
+
+def obtain_software_family(config):
+    '''
+    Extract software family
+    '''
+
+    match = re.search("show version\nCisco IOS XE Software", config)
+    if match:
+        return "IOS XE"
+    else:
+        match = re.search("show version\nCisco Nexus Operating System", config)
+        if match:
+            return "NX-OS"
         else:
-            return "Not Found"
+            match = re.search("show version\nCisco IOS Software,", config)
+            if match:
+                return "IOS"
+            else:
+                return "Not Found"
+
+
 
 
 def obtain_mng_ip_from_config(filename):

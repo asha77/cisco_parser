@@ -47,15 +47,15 @@ YACPS still can not:
 - work with Cisco firewalls (they do not use cdp) 
 - many things 
 
+
+
+
 ## List of recommended commands to be collected from devices (required commands are in bold):
 **Cisco Switches**
 ```
-show tech-support
-**show int status**
+**show interfaces status**
 ** show int description **
-show tech-support
 **show int status**
-** show int description **
 ** show int switchport **
 ** show int trunk **
 ** show vlan **
@@ -159,4 +159,58 @@ show nat
 show asp drop
 show access-list
 show log
+```
+
+**Eltex Switches**
+```
+**show interfaces status**
+**show interfaces description **
+**show interfaces status**
+**show interfaces switchport **
+** show vlan **
+** show mac address-table **
+show mac address-table count
+show arp
+show ip arp inspection list
+show vrrp
+show ip interface
+show lldp neighbors
+show ip dhcp snooping binding
+show spanning-tree
+show spanning-tree detail
+show spanning-tree active
+show stack
+show stack configuration
+show stack links
+show system power-supply
+show system
+show version
+show system sensors
+show system fans
+show lacp
+show interfaces channel-group
+show fiber-ports optical-transceiver
+show ip interface
+show interfaces utilization
+show ipv6 interface
+show ip route
+show ip route vrf *
+show ip ospf
+show ip ospf neighbor
+show ip ospf interface
+show ip ospf database
+show ip bgp
+show ip bgp neighbor
+show logging file
+show logging
+show clock detail 
+show sntp status
+show cpu utilization
+show cpu input-rate detailed
+show tasks utilization
+show errdisable interfaces
+** show dot1x interface **
+show dot1x statistics interface
+show dot1x users
+dot1x re-authenticate
 ```
