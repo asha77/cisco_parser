@@ -53,6 +53,9 @@ YACPS still can not:
 ## List of recommended commands to be collected from devices (required commands are in bold):
 **Cisco Switches**
 ```
+**show running-config**
+**show version**
+**show inventory**
 **show interfaces status**
 ** show int description **
 **show int status**
@@ -103,13 +106,17 @@ show processes memory sorted
 
 **Cisco Routers**
 ```
-show tech-support
-show int status
-show int description
-show ip interface brief
+**show running-config**
+**show version**
+**show inventory**
+**show interfaces status**
+** show int description **
+**show int status**
 ** show int switchport **
 ** show int trunk **
 ** show vlan **
+** show mac address-table **
+show ip interface brief
 show protocols
 show ip protocols
 ** show cdp neighbors **
