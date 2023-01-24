@@ -57,18 +57,24 @@ YACPS still can not:
 **show version**
 **show inventory**
 **show interfaces status**
-** show int description **
+**show int description**
 **show int status**
-** show int switchport **
-** show int trunk **
-** show vlan **
-** show mac address-table **
+**show int switchport**
+**show int trunk**
+**show vlan**
+**show mac address-table**
+**show ip int br**
+**show cdp neighbors**
+**show cdp neighbors detail**
+** show lldp neighbors**
+** show lldp neighbors detail**
+**show int transceiver**
+**show ip route vrf * **
+**show log**
+**show dot1x interface detail**
+**show hsrp**
 show ip arp
 show vrrp
-show hsrp
-** show ip int br **
-** show cdp neighbors *
-show lldp neighbors
 show ip dhcp snooping binding
 show spanning-tree
 show spanning-tree bridge
@@ -77,12 +83,10 @@ show switch detail
 show env all
 show etherchannel summary
 show port-channel summary
-** show int transceiver **
 show vtp status
 show protocols
 show ip protocols
 show ip route
-** show ip route vrf * **
 show ip route summary
 show ip ospf
 show ip ospf neighbor
@@ -95,13 +99,11 @@ show ip eigrp interfaces
 show ip eigrp topology
 show ip bgp summary
 show ip bgp vpnv4 all summary
-** show log **
 show ntp status
 show ntp associations
 show ntp peer-status
 show processes cpu sorted
 show processes memory sorted
-** show dot1x interface detail **
 ```
 
 **Cisco Routers**
