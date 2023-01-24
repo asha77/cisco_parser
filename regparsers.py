@@ -20,6 +20,7 @@ def obtain_hostname(config):
     else:
         return "Not Found"
 
+
 def obtain_timezone(config):
     '''
     Extract clock timezone value
@@ -92,6 +93,7 @@ def obtain_snmp_version(config):
             else:
                 return "Not Found"
 
+
 def check_source_route(config):
     '''
     Check source-routing disabled
@@ -102,6 +104,7 @@ def check_source_route(config):
         return "Ok"
     else:
         return "Fail"
+
 
 def check_service_password_encryption(config):
     '''
@@ -114,14 +117,15 @@ def check_service_password_encryption(config):
     else:
         return "Fail"
 
+
 def check_weak_service_password_encryption(config):
     '''
     Check weak (reversive) Viginere password hash
     '''
 
-    match = re.search("enable password (.*)", config)
+    match = re.search("enable password (\d*)", config)
     if match:
-        return "Fail"
+        return "Fail("+str(match.group(1).strip())+")"
     else:
         return "Ok"
 
@@ -133,9 +137,20 @@ def check_md5_service_password_encryption(config):
 
     match = re.search("enable secret (\d) (.*)", config)
     if match:
-        return str(match.group(1).strip())
+        if match.group(1).strip() == "7":
+            return "Fail(7)"
+        elif match.group(1).strip() == "4":
+            return "Fail(4)"
+        elif match.group(1).strip() == "9":
+            return "Best(9)"
+        elif match.group(1).strip() == "5":
+            return "Ok(5)"
+        elif match.group(1).strip() == "8":
+            return "Ok(8)"
+        else:
+            return str(match.group(1).strip())
     else:
-        return "Fail"
+        return "Not Found"
 
 
 def check_ssh_version(config):
@@ -349,11 +364,15 @@ def check_weak_local_users_passwords(config):
     Check for weak passwords for local users
     '''
 
-    match = re.search("username (\s+) password (.*)", config)
+    match = re.search("username (\S+) password (\d*)", config)
     if match:
-        return "Fail"
+        return "Fail(" + match.group(2).strip() + ")"
     else:
-        return "Ok"
+        match = re.search("username (\S+) secret (\d*)", config)
+        if match:
+            return "Fail(" + match.group(2).strip() + ")"
+        else:
+            return "Ok"
 
 
 def check_motd_banner(config):
@@ -469,7 +488,6 @@ def obtain_model(config):
     '''
     Extract model number
     '''
-
     match = re.search("Model \wumber\ *: (.*)", config)
     if match:
         return match.group(1).strip()
@@ -485,7 +503,11 @@ def obtain_model(config):
             if match:
                 return "N9K-"+match.group(1).strip()
             else:
-                return "Not Found"
+                match = re.search("ROM: Bootstrap program is Linux", config)
+                if match:
+                    return "Cisco IOS vRouter "
+                else:
+                    return "Not Found"
 
 
 def obtain_serial(config):
@@ -543,21 +565,23 @@ def obtain_software_family(config):
     Extract software family
     '''
 
-    match = re.search("show version\nCisco IOS XE Software", config)
+    match = re.search(".*show version\n*Cisco IOS.XE .oftware", config)
     if match:
         return "IOS XE"
     else:
-        match = re.search("show version\nCisco Nexus Operating System", config)
+        match = re.search("Cisco IOS Software \[Denali\]", config)
         if match:
-            return "NX-OS"
+            return "IOS XE"
         else:
-            match = re.search("show version\nCisco IOS Software,", config)
+            match = re.search("(.*)show version\nCisco Nexus Operating System", config)
             if match:
-                return "IOS"
+                return "NX-OS"
             else:
-                return "Not Found"
-
-
+                match = re.search("(.*)show version\n*(\s)*Cisco IOS Software", config)
+                if match:
+                    return "IOS"
+                else:
+                    return "Not Found"
 
 
 def obtain_mng_ip_from_config(filename):

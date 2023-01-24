@@ -1,6 +1,4 @@
-import textfsm
 import os
-from regparsers import *
 from txtfsmparsers import *
 
 
@@ -45,6 +43,10 @@ def init_files():
         'File Name;Hostname;Switch type;Num of Ph ports;Num of SVI ints;Num of access ports;Num of trunk ports;Num of '
         'access dot1x ports;Num of ints w/IP;Access Vlans;Native Vlans;Voice Vlans;Trunk Vlans;Vlan database;users '
         'id;iot_toro id;media_equip id;off_equip id;admin id;\n')
+    resfile.close()
+
+    resfile = open("output\\missed_devices.csv", "w")
+    resfile.write('Hostname;Model;IP;\n')
     resfile.close()
 
 
@@ -257,7 +259,6 @@ def normalize_interface_names(non_norm_int):
     return "normalize_interface_names failed"
 
 
-
 def check_compliance(num, file, curr_path, config):
     dev_access = get_access_config(config, curr_path)
     dev_con_access = get_con_access_config(config, curr_path)
@@ -302,9 +303,6 @@ def check_compliance(num, file, curr_path, config):
     # def obtain_mng_ip_from_config(filename)
     # def check_portsecurity(filename)
     # def check_stormcontrol(filename)
-
-
-
 
     print('| {0:4d} | {1:75s} | {2:25s} | {3:15s} | {4:20s} | {5:18s} | {6:10s} | {7:12s} | {8:12s} | {9:10s} | {10:10s} | {11:10s} | {12:10s} | {13:12s} | {14:6s} | {15:25s} | {16:12s} | {17:6s} | {18:6s} | {19:6s} | {20:14s} | {21:14s} | {22:14s} | {23:12s} | {24:8s} | {25:14s} | {26:14s} | {27:12s} | {28:12s} |{29:8s} | {30:14s} | {31:14s} | {32:12s} | {33:12s} | {34:10s} | {35:10s} | {36:10s} | {37:10s} | {38:10s} | {39:10s} | {40:10s} | {41:10s} | {42:10s} | {43:10s} | {44:10s} | {45:10s} | {46:10s} | {47:10s} | {48:10s} | {49:10s} | {50:10s} | {51:10s} | {52:34s} | {53:34s} | {54:65s} | {55:10s} | {56:10s} | {57:10s} | {58:40s} | {59:10s} | {60:10s} | {61:10s} |'.format(
             num,
@@ -462,3 +460,53 @@ def check_compliance(num, file, curr_path, config):
         ))
 """
 
+def find_missed_devices():
+    devices = []
+    cdps = []
+    missed_devices = []
+    dname = ""
+
+    with open("output\\cparser_output.csv") as f_cparser:
+        for line in f_cparser.readlines():
+            devices.append(line.split(";"))
+
+
+    with open("output\\all_nei_output.csv") as f_allnei:
+        for line in f_allnei.readlines():
+            cdps.append(line.split(";"))
+
+    for cdp in cdps:
+        found = False
+        if cdp[0] == "Hostname":
+            continue
+
+        for device in devices:
+            if found:
+                break
+
+            if device[0] == "Hostname":
+                continue
+
+            if device[3] == "Not set":
+                dname = device[1]
+            else:
+                dname = device[1] + "." + device[3]
+
+            if cdp[0] == dname:
+                found = True
+
+        if not found:  # cdp entry not found in configurations -> add to missed
+            if cdp not in missed_devices:
+                missed_devices.append(cdp)
+    return missed_devices
+
+
+def missed_devices_file_output(missed_devices):
+    f_missed = open("output\\missed_devices.csv", "a")
+    for i in range(len(missed_devices)):
+        f_missed.write('{0:1s};{1:1s};{2:1s}'.format(
+            missed_devices[i][0],
+            missed_devices[i][1],
+            missed_devices[i][2],
+        ))
+    f_missed.close()

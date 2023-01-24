@@ -85,9 +85,18 @@ def main():
                     int_config = get_interfaces_config(config, curr_path, file, devinfo)
                     interfaces_file_output(int_config)              # print interfaces info into file
 
+                    # Trying to find missed devices that can be found in cdp data
+        missed_devices = find_missed_devices()
+        missed_devices_file_output(missed_devices)
+
+
         # conffile.close()
         tbl_footer_out2scr()
         tbl_files_info_out2scr()
+
+        if len(missed_devices) > 0:
+            print("В конфигурации CDP найдено {} устройств, конфигурации которых отсутствуют. "
+                  "См. файл missed.devices.csv".format(len(missed_devices)))
 
     elif (namespace.mode == 'all') and (namespace.configdir is not None) and (namespace.compcheck is True):
         # проверяем compliance
@@ -122,6 +131,7 @@ def main():
     elif (namespace.mode == 'all') and (namespace.configdir is not None) and (namespace.picture is True):
         diagram = drawio_diagram()
         diagram.add_diagram("Page-1")
+        print("Starting processing files in folder: " + str(namespace.configdir))
 #        diagram.add_node(id="R2", style=".\\styles\\router.txt")
 #        diagram.add_node(id="R2", style=router_style)
 #        diagram.add_node(id="R1", style=router_style)
@@ -144,19 +154,14 @@ def main():
                     # заполняем devinfo
                     devinfo = fill_devinfo_from_config(config)
 
-                    """
-                    devinfo = [obtain_hostname(config),
-                                obtain_mng_ip_from_config(config),
-                                obtain_domain(config),
-                                obtain_model(config),
-                                obtain_serial(config),
-                                obtain_software_version(config)]
-                    """
-
                     if filter_devices(get_only_name(devinfo[0])):
                         lbtext = get_only_name(devinfo[0]) + "&lt;div&gt;" + devinfo[3]
 #                        lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
-                        diagram.add_node(id=devinfo[0]+"."+devinfo[2], label=lbtext, style=get_dev_style_from_model(devinfo[3])[0], width=(get_dev_style_from_model(devinfo[3])[1]), height=(get_dev_style_from_model(devinfo[3])[2]), data={"IP": devinfo[1], "Serial": devinfo[4]})
+                        if devinfo[2] == "Not set":
+                            dev_id = devinfo[0]
+                        else:
+                            dev_id = devinfo[0]+"."+devinfo[2]
+                        diagram.add_node(id=dev_id, label=lbtext, style=get_dev_style_from_model(devinfo[3])[0], width=(get_dev_style_from_model(devinfo[3])[1]), height=(get_dev_style_from_model(devinfo[3])[2]), data={"IP": devinfo[1], "Serial": devinfo[4]})
                     else:
                         print("skipped: " + devinfo[0])
 
@@ -169,8 +174,7 @@ def main():
                     devinfo = fill_devinfo_from_config(config)
                     # формирование перечня cdp-связности
                     cdp_neighbours = get_cdp_neighbours(config, curr_path, file, devinfo)
-
-# ToDo: provide actual data info in links
+                    # ToDo: provide actual data info in links
                     for i in range(0, len(cdp_neighbours)):
                         if (filter_devices(get_only_name(cdp_neighbours[i][1])) and filter_devices(get_only_name(cdp_neighbours[i][5]))):
                             linkstyle = get_link_style_from_model(cdp_neighbours[i][4])
@@ -182,6 +186,26 @@ def main():
         diagram.dump_file(filename="network_graph.drawio", folder="./output/")
         tbl_files_info_out2scr()
 
+
+        # Добавляем на диаграмму все устройства
+        for file in list_of_files:
+            if os.path.isfile(file):
+                with open(file, "r") as conffile:
+                    config = conffile.read()
+                    # заполняем devinfo
+                    devinfo = fill_devinfo_from_config(config)
+
+                    if filter_devices(get_only_name(devinfo[0])):
+                        lbtext = get_only_name(devinfo[0]) + "&lt;div&gt;" + devinfo[3]
+#                        lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
+                        if devinfo[2] == "Not set":
+                            dev_id = devinfo[0]
+                        else:
+                            dev_id = devinfo[0]+"."+devinfo[2]
+                        diagram.add_node(id=dev_id, label=lbtext, style=get_dev_style_from_model(devinfo[3])[0], width=(get_dev_style_from_model(devinfo[3])[1]), height=(get_dev_style_from_model(devinfo[3])[2]), data={"IP": devinfo[1], "Serial": devinfo[4]})
+                    else:
+                        print("skipped: " + devinfo[0])
+        print("Finished processing files in folder: " + str(namespace.configdir))
 
 if __name__ == "__main__":
     main()

@@ -12,10 +12,15 @@ def get_cdp_neighbours(config, curr_path, file, devinfo):
     lastindex = 0
     i = 0
 
+    if devinfo[2] == "Not set":
+        dev_id = devinfo[0]
+    else:
+        dev_id = devinfo[0] + '.' + devinfo[2]
+
     for i in range(lastindex, len(neighbours)):
         all_neighbours.append([])
         all_neighbours[len(all_neighbours) - 1].append(file)
-        all_neighbours[len(all_neighbours) - 1].append(devinfo[0] + '.' + devinfo[2])
+        all_neighbours[len(all_neighbours) - 1].append(dev_id)
         all_neighbours[len(all_neighbours) - 1].append(devinfo[3])
         all_neighbours[len(all_neighbours) - 1].append(devinfo[1])
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][4])
@@ -232,6 +237,14 @@ def get_access_config(config, curr_path):
         access_config[0].append("Not set")
         access_config[0].append("Not set")
 
+        access_config.append([])
+        access_config[1].append("Not set")
+        access_config[1].append("Not set")
+        access_config[1].append("Not set")
+        access_config[1].append("Not set")
+        access_config[1].append("Not set")
+
+    if (len(access) == 1):
         access_config.append([])
         access_config[1].append("Not set")
         access_config[1].append("Not set")

@@ -28,6 +28,7 @@ def tbl_files_info_out2scr():
     print("     - many_macs.csv             - list of ports, where switch see many MAC adresses (trying to"
           " find hubs, hypervisors, etc.")
     print("     - compliance_output.csw     - results of compliance checks")
+    print("     - missed_devices.csw        - cdp entries without configuration files")
     print("     - network_graph.drawio      - L1 network diagram")
 
 
