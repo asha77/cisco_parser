@@ -1,6 +1,6 @@
 Value Required LINE_NUM (.*)
 Value EXEC_TIME (\d+)
-Value PREF_TRANSPORT (\s+)
+Value PREF_TRANSPORT (\w+)
 Value TRANSPORT_INPUT (.+)
 Value LOGI_AUTH (.+)
 

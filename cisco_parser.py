@@ -8,9 +8,8 @@ import os
 import pathlib
 from N2G import drawio_diagram
 
-
 devinfo = []
-
+compliance_result = []
 
 def createparser():
     parser = argparse.ArgumentParser(prog='CiscoParser', description='Утилита анализа конфигураций коммутаторов Cisco v0.4.', epilog='author: asha77@gmail.com')
@@ -89,8 +88,6 @@ def main():
         missed_devices = find_missed_devices()
         missed_devices_file_output(missed_devices)
 
-
-        # conffile.close()
         tbl_footer_out2scr()
         tbl_files_info_out2scr()
 
@@ -101,8 +98,8 @@ def main():
     elif (namespace.mode == 'all') and (namespace.configdir is not None) and (namespace.compcheck is True):
         # проверяем compliance
         list_of_files = os.listdir(namespace.configdir)
-        tbl_complheader_out2scr()
 
+        tbl_complheader_out2scr()
         # инициализация файлов с результатами работы скрипта
         init_comliance_files()
 
@@ -124,7 +121,9 @@ def main():
                     # devinfo=fill_devinfo_from_config(config)
 
                     check_compliance(list_of_files.index(file), file, curr_path, config)
+                    write_compliance()
 
+        write_xls_report(curr_path)
         tbl_complfooter_out2scr()
         tbl_files_info_out2scr()
 

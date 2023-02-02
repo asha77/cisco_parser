@@ -30,7 +30,7 @@ def obtain_timezone(config):
     if match:
         return match.group(1).strip()
     else:
-        return "Not Found"
+        return "Not set"
 
 """
 def obtain_secret_settings(config):
@@ -45,53 +45,67 @@ def obtain_secret_settings(config):
         return "Not Found"
 """
 
+
 def obtain_snmp_version(config):
     '''
-    Extract SNMP version and check if it is encrypted (priv)
+    Extract SNMP version
     '''
 
-    # in Nexus: snmp-server user admin network-admin auth md5 0x661ce46ac35c6d0f8a7b37bbc6afcf2b priv aes-128 0x661ce46ac35c6d0f8a7b37bbc6afcf2b localizedkey
-
-    if ("N9K" in obtain_model(config)):
-        match = re.search("snmp-server (.+) auth md5 (.+) priv\s(\w+-\d+)\s(.+)\s(\w+)", config)
-        if match:
-            return "priv"
-        else:
-            match = re.search("snmp-server community\s(.+)\sR\w\s(\d+)", config)
-            if match:
-                return "v2c"+match.group(2).strip()
-            else:
-                return "Not Found"
-    elif (("WS-C" in obtain_model(config)) or ("C1000" in obtain_model(config))):
-        match = re.search("snmp-server group (\w+) (\w+) priv(.*)", config)
-        if match:
-            return "priv "+match.group(2).strip()
-        else:
-            match = re.search("snmp-server community\s(.+)(\sR\w\s(\d+))*", config)
-            if match:
-                return "v2c"
-            else:
-                return "Not Found"
-    elif (("C9200" in obtain_model(config)) or ("C9500" in obtain_model(config)) or ("C9300" in obtain_model(config))):
-        match = re.search("snmp-server group (\w+) (\w+) priv (.*)", config)
-        if match:
-            return "priv "+match.group(2).strip()
-        else:
-            match = re.search("snmp-server community\s(.+)(\sR\w\s(\d+))*", config)
-            if match:
-                return "v2c"
-            else:
-                return "Not Found"
+    match = re.search("snmp-server group", config)
+    if match:           # SNMP v3 with secured auth
+        return "v3"
     else:
-        match = re.search("snmp-server group (\w+) (\w+) priv (.*)", config)
-        if match:
-            return "priv "+match.group(2).strip()
+        match = re.search("snmp-server community", config)
+        if match:       # SNMP v2c
+            return "v2c"
         else:
-            match = re.search("snmp-server community\s(.+)(\sR\w\s(\d+))*", config)
-            if match:
-                return "v2c"
-            else:
-                return "Not Found"
+            return "Not set"
+
+
+def check_snmpv3_authencr(config):
+    '''
+    Get SNMPv3 mode
+    '''
+
+    # in SNMPv3:
+    # noAuthNoPriv — пароли передаются в открытом виде, конфиденциальность данных отсутствует;
+    # authNoPriv — аутентификация без конфиденциальности;
+    # authPriv — аутентификация и шифрование, максимальный уровень защищенности.
+
+    match = re.search("snmp-server group (\w+) v3 (\w+)\s(.*)", config)        # user v3 with priv
+    if match:           # SNMP v3 with secured auth
+        return match.group(2).strip()
+    else:
+        return "Not set"
+
+
+def check_snmpv2_ACL(config):
+    '''
+    Check SNMPv2 has access ACL
+    '''
+
+    match = re.search("snmp-server community\s(.+)\sR\w\s(\d+)", config)
+    if match:       # SNMP v2c
+        return match.group(2).strip()
+    else:
+        return "Not set"
+
+
+def obtain_snmp_user_encr(config):
+    '''
+    Check SNMP v3 user password md5 hashed
+    '''
+    # snmp-server user admin network-admin auth md5 0x661ce46ac35c6d0f8a7b37bbc6afcf2b priv aes-128 0x661ce46ac35c6d0f8a7b37bbc6afcf2b localizedkey
+
+    match = re.search("snmp-server user (\s+) v3", config)        # user v3 with md 5 and priv
+    if match:           # SNMP v3 user present
+        match = re.search("snmp-server (.+) v3 auth md5 (.+) priv\s(aes.+)\s(.*)", config)  # user v3 with md 5 and priv
+        if match:  # SNMP v3 with secured auth
+            return "Ok"
+        else:
+            return "Fail"
+    else:
+        return "Not set"
 
 
 def check_source_route(config):
@@ -103,7 +117,7 @@ def check_source_route(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_service_password_encryption(config):
@@ -111,30 +125,33 @@ def check_service_password_encryption(config):
     Check service password encryption
     '''
 
-    match = re.search("service password-encryption", config)
+    match = re.search("no service password-encryption", config)
     if match:
-        return "Ok"
-    else:
         return "Fail"
+    else:
+        match = re.search("service password-encryption", config)
+        if not match:
+            return "Not set"
+        else:
+            return "Ok"
 
 
-def check_weak_service_password_encryption(config):
+def check_weak_enable_password_encryption(config):
     '''
-    Check weak (reversive) Viginere password hash
+    Check weak (reversive) Viginere password hash for enable
     '''
 
     match = re.search("enable password (\d*)", config)
     if match:
         return "Fail("+str(match.group(1).strip())+")"
     else:
-        return "Ok"
+        return "Not set"
 
 
-def check_md5_service_password_encryption(config):
+def check_enable_password_encryption_method(config):
     '''
-    Check strong MD5 password hash (5 - md5, 7 - weak)
+    Check enable password encryption method (5 - md5, 7 - weak, 9 - best)
     '''
-
     match = re.search("enable secret (\d) (.*)", config)
     if match:
         if match.group(1).strip() == "7":
@@ -150,7 +167,7 @@ def check_md5_service_password_encryption(config):
         else:
             return str(match.group(1).strip())
     else:
-        return "Not Found"
+        return "Not set"
 
 
 def check_ssh_version(config):
@@ -165,19 +182,18 @@ def check_ssh_version(config):
         else:
             return "Fail(1)"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_logging_buffered(config):
     '''
     Check logging buffered size
     '''
-
     match = re.search("logging buffered (.*)", config)
     if match:
         return "Ok("+match.group(1).strip()+")"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_ssh_timeout(config):
@@ -189,18 +205,23 @@ def check_ssh_timeout(config):
     if match:
         return "Ok("+match.group(1).strip()+")"
     else:
-        return "Fail"
+        return "Not set"
+
 
 def check_boot_network(config):
     '''
     Check boot network configuration
     '''
 
-    match = re.search("boot network (.*)", config)
+    match = re.search("no boot network", config)
     if match:
-        return "Fail"
-    else:
         return "Ok"
+    else:
+        match = re.search("boot network (.*)", config)
+        if match:
+            return "Fail"
+        else:
+            return "Not set"
 
 
 def check_service_config(config):
@@ -208,11 +229,11 @@ def check_service_config(config):
     Check service config configuration
     '''
 
-    match = re.search("service config", config)
+    match = re.search("no service config", config)
     if match:
-        return "Fail"
-    else:
         return "Ok"
+    else:
+        return "Not set"
 
 
 def check_cns_config(config):
@@ -226,7 +247,6 @@ def check_cns_config(config):
     else:
         return "Ok"
 
-    # new block started here
 
 def check_syslog_timestamp(config):
     '''
@@ -237,7 +257,7 @@ def check_syslog_timestamp(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_proxy_arp(config):
@@ -257,11 +277,11 @@ def check_logging_console(config):
     Check for console logging configuration (only critical recommended)
     '''
 
-    match = re.search("logging console (\s+)", config)
+    match = re.search("logging console (\w+)", config)
     if match:
         return match.group(1).strip()
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_logging_syslog(config):
@@ -269,11 +289,11 @@ def check_logging_syslog(config):
     Check for logging to syslog configuration (informational recommended)
     '''
 
-    match = re.search("logging trap (\s+)", config)
+    match = re.search("logging trap (\w+)", config)
     if match:
         return match.group(1).strip()
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_log_failures(config):
@@ -285,7 +305,7 @@ def check_log_failures(config):
     if match:
         return match.group(1).strip()
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_log_success(config):
@@ -297,7 +317,7 @@ def check_log_success(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_tcp_keepalives_in(config):
@@ -305,11 +325,11 @@ def check_tcp_keepalives_in(config):
     Check for keepalives-in option enabled
     '''
 
-    match = re.search("tcp-keepalives-in", config)
+    match = re.search("service tcp-keepalives-in", config)
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 def check_tcp_keepalives_out(config):
     '''
@@ -320,7 +340,7 @@ def check_tcp_keepalives_out(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_inetd_disable(config):
@@ -332,7 +352,7 @@ def check_inetd_disable(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_bootp_disable(config):
@@ -344,7 +364,7 @@ def check_bootp_disable(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_authentication_retries(config):
@@ -356,7 +376,7 @@ def check_authentication_retries(config):
     if match:
         return match.group(1).strip()
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_weak_local_users_passwords(config):
@@ -370,9 +390,9 @@ def check_weak_local_users_passwords(config):
     else:
         match = re.search("username (\S+) secret (\d*)", config)
         if match:
-            return "Fail(" + match.group(2).strip() + ")"
+            return "Ok(" + match.group(2).strip() + ")"
         else:
-            return "Ok"
+            return "Not set"
 
 
 def check_motd_banner(config):
@@ -384,7 +404,7 @@ def check_motd_banner(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_accounting_commands(config):
@@ -396,19 +416,20 @@ def check_accounting_commands(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 
 def check_connection_accounting(config):
     '''
-    Check for accounting for commands
+    Check for accounting for connections
     '''
 
     match = re.search("aaa accounting connection(.+)", config)
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
+
 
 def check_exec_commands_accounting(config):
     '''
@@ -419,7 +440,8 @@ def check_exec_commands_accounting(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
+
 
 def check_system_accounting(config):
     '''
@@ -430,7 +452,7 @@ def check_system_accounting(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
 
 def check_new_model(config):
     '''
@@ -441,7 +463,8 @@ def check_new_model(config):
     if match:
         return "Ok"
     else:
-        return "Fail"
+        return "Not set"
+
 
 def check_auth_login(config):
     '''
@@ -452,7 +475,8 @@ def check_auth_login(config):
     if match:
         return match.group(1).strip()
     else:
-        return "Fail"
+        return "Not set"
+
 
 def check_auth_enable(config):
     '''
@@ -463,7 +487,7 @@ def check_auth_enable(config):
     if match:
         return match.group(1).strip()
     else:
-        return "Fail"
+        return "Not set"
 
 
 def get_ntp_servers(config):
@@ -478,10 +502,14 @@ def get_ntp_servers(config):
             s = s + " "+match[i]+","
         return s[:-1]
     else:
-        return "Fail"
-
-
-    # new block finished here
+        match = re.findall('^ntp server vrf [\w.-_]* ([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, re.MULTILINE)
+        if match:
+            s = ""
+            for i in range(len(match)):
+                s = s + " "+match[i]+","
+            return s[:-1]
+        else:
+            return "Not set"
 
 
 def obtain_model(config):
@@ -507,7 +535,7 @@ def obtain_model(config):
                 if match:
                     return "Cisco IOS vRouter "
                 else:
-                    return "Not Found"
+                    return "Not found"
 
 
 def obtain_serial(config):
@@ -600,16 +628,17 @@ def check_bpduguard(filename):
     '''
     Check bpduguard setting globally or on interface
     '''
+    # spanning-tree portfast edge bpduguard default
 
-    match = re.search("spanning-tree portfast bpduguard(.*)", filename)
+    match = re.search("spanning-tree portfast (\w*)(\s*)bpduguard(.*)", filename)
     if match:
         return "Ok(glb pf)"
     else:
-        match = re.search("spanning-tree bpduguard(.*)", filename)
+        match = re.search(" spanning-tree bpduguard(.*)", filename)
         if match:
             return "Ок(int)"
         else:
-            return "Not Found"
+            return "Not set"
 
 
 def check_iparp_inspect(filename):
@@ -621,7 +650,7 @@ def check_iparp_inspect(filename):
     if match:
         return "Ок"
     else:
-        return "Not Found"
+        return "Not set"
 
 
 def check_dhcp_snooping(filename):
@@ -633,19 +662,22 @@ def check_dhcp_snooping(filename):
     if match:
         return "Ок"
     else:
-        return "Not Found"
+        return "Not set"
 
 
 def check_aux(filename):
     '''
     Check aux settings
     '''
-
-    match = re.search("line aux 0\n\sno exec", filename)
+    match = re.search("line aux", filename)
     if match:
-        return "Ок"
+        match = re.search("line aux 0\n\sno exec", filename)
+        if match:
+            return "Ок"
+        else:
+            return "Not set"
     else:
-        return "Not Found"
+        return "No aux"
 
 
 def check_portsecurity(filename):
@@ -653,11 +685,11 @@ def check_portsecurity(filename):
     Check port security settings
     '''
 
-    match = re.findall("switchport port-security(.*)", filename)
+    match = re.findall(" switchport port-security(.*)", filename)
     if match:
         return "Ok (" + str(len(match)) + ")"
     else:
-        return "Not Found"
+        return "Not set"
 
 
 def check_stormcontrol(filename):
@@ -669,7 +701,7 @@ def check_stormcontrol(filename):
     if match:
         return "Ok (" + str(len(match)) + ")"
     else:
-        return "Not Found"
+        return "Not set"
 
 
 def fill_devinfo_from_config(config):
@@ -753,8 +785,6 @@ def get_num_of_ints_with_ip(ints):
         if ints[i][2] != "":
             intcount = intcount + 1
     return (intcount)
-
-
 
 
 def get_access_vlan_ids(ints):
