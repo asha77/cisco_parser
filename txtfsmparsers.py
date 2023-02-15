@@ -1,6 +1,6 @@
 import textfsm
 from regparsers import *
-
+from cisco_parser import all_interfaces
 
 def get_cdp_neighbours(config, curr_path, file, devinfo):
     nei_template = open(curr_path + '\\nrt_cdp_nei.template')
@@ -66,6 +66,8 @@ def get_vrfs(config, curr_path, file, devinfo):
 
 
 def get_interfaces_config(config, curr_path, file, devinfo):
+#    global all_interfaces
+
     interfaces = []
     int_template = open(curr_path + '\\nrt_interfaces_config.template')
     fsm = textfsm.TextFSM(int_template)
@@ -98,9 +100,13 @@ def get_interfaces_config(config, curr_path, file, devinfo):
     # [16] - vlan id of media_equip vlan
     # [17] - vlan id of off_equip vlan
     # [18] - vlan id of admin vlan
+    if devinfo[2] == "Not set":
+        dev_id = devinfo[0]
+    else:
+        dev_id = devinfo[0] + '.' + devinfo[2]
 
     interfaces_configuration.append(file)
-    interfaces_configuration.append(devinfo[0])
+    interfaces_configuration.append(dev_id)
     interfaces_configuration.append(get_type_of_sw_from_hostname(devinfo[0]))
     interfaces_configuration.append(get_num_of_physical_ints(interfaces))
     interfaces_configuration.append(get_num_of_svi_ints(interfaces))
@@ -115,6 +121,8 @@ def get_interfaces_config(config, curr_path, file, devinfo):
 
     vlans_from_config = get_vlan_config(config, curr_path)
     interfaces_configuration.append(vlans_from_config)
+
+    all_interfaces.append(interfaces)
 
     """
     fill vlan id for vlans with names   
@@ -284,6 +292,7 @@ def get_access_config(config, curr_path):
 
     access_template.close()
     return access_config
+
 
 def get_con_access_config(config, curr_path):
     # Extract console device access parameters

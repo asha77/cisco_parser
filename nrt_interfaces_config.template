@@ -16,7 +16,7 @@ Start
   ^\s+description\s+${DESCRIPTION}$$
   ^\s+ip\s+address\s+${IP_ADDRESS}\s+${NETMASK}$$
   ^\s+switchport\s+mode\s+${PORT_MODE}$$
-  ^\s+switchport\s+access\s+vlan\s+${ACCESS_VLAN_ID}$$
+  ^\s+switchport\s+${PORT_MODE}\s+vlan\s+${ACCESS_VLAN_ID}$$
   ^\s+switchport\s+voice\s+vlan\s+${VOICE_VLAN_ID}$$
   ^\s+switchport\s+trunk\s+allowed\s+vlan\s+${TRUNK_VLAN_ID}$$
   ^\s+switchport\s+trunk\s+native\s+vlan\s+${NATIVE_VLAN_ID}$$

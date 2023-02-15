@@ -64,3 +64,27 @@ def get_link_style_from_model(ints):
     else:
         return new_link_style
 
+
+
+def trunking_analisys():
+    # structure of interfaces
+    # dev_id, [
+    # INTERFACE [0], DESCRIPTION [1], IP_ADDRESS [2], NETMASK [3], ACCESS_VLAN_ID [4]
+    # PORT_MODE [5], VOICE_VLAN_ID [6], TRUNK_VLAN_ID [7], NATIVE_VLAN_ID [8]
+    # CHANNEL_GROUP [9], PO_MODE [10], AUTH_MODE [11] ]
+
+    # structure of cdps
+    # file [0], src dev_id [1], src model [2], src ip [3], src_port [4],
+    # dst dev_id [5], dst model [6], dst IP [7], dst port [8]
+
+    # structure of devices
+    # hostname [0], mng_ip [1], domain [2], model [3], serial [4], sw_ver [5]
+
+    for dev in all_devices:
+        for link in all_cdps:
+
+            num = 0
+            if link[1] == dev[0]:
+                num = num + 1
+            if num:
+                print("Fake")

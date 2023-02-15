@@ -22,14 +22,12 @@ YACPS can:
 `git clone https://github.com/asha77/cisco_parser.git`
 3. Open command line, cd to directory with YACPS.
 4. Run YACPS:
-Extract data from all files in directory:
-`cisco_parser.py all -e -d "c:\tmp\cisco"`
+Extract data from all files in and draw diagram:
+`cisco_parser.py -e -d "c:\tmp\cisco"`
 
 Check compliance from all files in directory:
-`cisco_parser.py all -c -d "c:\tmp\cisco"`
+`cisco_parser.py -c -d "c:\tmp\cisco"`
 
-Draw diagram from all files in directory:
-`cisco_parser.py all -p -d "c:\tmp\cisco"`
 
 5. Inspect python console messages.
 6. Check "output" subfolder in `c:\tmp\cisco` for results.
@@ -51,28 +49,37 @@ YACPS still can not:
 
 
 ## List of recommended commands to be collected from devices (required commands are in bold):
+
 **Cisco Switches**
+
+# show mac address-table
+# show cdp neighbors detail
+# show ip route
+# show ip route vrf *
+
+
+
 ```
 **show running-config**
 **show version**
-**show inventory**
+show inventory
 **show interfaces status**
-**show int description**
-**show int status**
-**show int switchport**
-**show int trunk**
-**show vlan**
+show int description
+show int switchport
+show int trunk
+show vlan
 **show mac address-table**
-**show ip int br**
-**show cdp neighbors**
+show ip int br
+show cdp neighbors
 **show cdp neighbors detail**
-** show lldp neighbors**
-** show lldp neighbors detail**
-**show int transceiver**
-**show ip route vrf * **
-**show log**
-**show dot1x interface detail**
-**show hsrp**
+ show lldp neighbors
+show lldp neighbors detail
+show int transceiver
+**show ip route vrf \***
+**show ip route vrf all**
+show log
+show dot1x interface detail
+show hsrp
 show ip arp
 show vrrp
 show ip dhcp snooping binding
@@ -110,7 +117,7 @@ show processes memory sorted
 ```
 **show running-config**
 **show version**
-**show inventory**
+show inventory
 **show interfaces status**
 ** show int description **
 **show int status**

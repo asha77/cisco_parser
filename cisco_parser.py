@@ -4,27 +4,25 @@ from outintofiles import *
 from check_duplicates import *
 from txtfsmparsers import *
 from diagram_utils import *
+# from datamodel import *
 import os
 import pathlib
 from N2G import drawio_diagram
 
 devinfo = []
 compliance_result = []
+all_devices = []
+all_interfaces = []
+all_cdps = []
+
+# device = config_entity
+
 
 def createparser():
     parser = argparse.ArgumentParser(prog='CiscoParser', description='Утилита анализа конфигураций коммутаторов Cisco v0.4.', epilog='author: asha77@gmail.com')
-    parser.add_argument('mode', help='single - process single file | all - process all files in directory')
-    parser.add_argument('-r', '--showrun', required=False, help='Specify single cisco config file (show run output)', type=argparse.FileType())
-    parser.add_argument('-d', '--configdir', required=False, help='Specify directory with many cisco config files', type=pathlib.Path)
+    parser.add_argument('-d', '--configdir', required=False, help='Specify directory with cisco config files', type=pathlib.Path)
     parser.add_argument('-c', '--compcheck', required=False, help='Perform compliance check on config files', action='store_true')
-    parser.add_argument('-e', '--extractdata', required=False, help='Perform extraction of data from configs and diagnostic commands', action='store_true')
-    parser.add_argument('-p', '--picture', required=False, help='Create drawio connectivity diagram configs and diagnostic commands', action='store_true')
-
-    # parser.add_argument('-i', '--showinterfaces', type=argparse.FileType())
-    # parser.add_argument('-a', '--showall', action='store_const', const=True)
-    # parser.add_argument('-m', '--showmacs', nargs='?', type=argparse.FileType())
-    # parser.add_argument('-s', '--skstable', nargs='?', type=argparse.FileType())
-    # parser.add_argument('-c', '--commtable', nargs='?', type=argparse.FileType())
+    parser.add_argument('-e', '--extractdata', required=False, help='Perform extraction of data from configs and diagnostic commands and draw picture', action='store_true')
     return parser
 
 
@@ -32,22 +30,14 @@ def main():
     parser = createparser()
     namespace = parser.parse_args()
 
-    if (namespace.mode == 'single') and (namespace.showrun is None):
-        print("!!! Ошибка: Необходмо указать файл конфигурации Cisco для анализа (полный вывод show running-config)")
-        exit()
-
     curr_path = os.path.abspath(os.getcwd())
     if namespace.configdir:
         os.chdir(namespace.configdir)
 
-    if (namespace.mode == 'single') and (namespace.showrun is not None):
-        cfilename = namespace.showrun
-        tbl_header_out2scr()
-        devices_summary_output(1, namespace.showrun, cfilename.read())
-        tbl_footer_out2scr()
-    elif (namespace.mode == 'all') and (namespace.configdir is not None) and (namespace.extractdata is True):
+    if namespace.extractdata is True:
         # собираем и выводим конфигурационную информацию
         list_of_files = os.listdir(namespace.configdir)
+        print("Starting processing files in folder: " + str(namespace.configdir))
         tbl_header_out2scr()
 
         # инициализация файлов с результатами работы скрипта
@@ -62,18 +52,19 @@ def main():
             if os.path.isfile(file):
                 with open(file, "r") as conffile:
                     config = conffile.read()
-
                     # формирование списка инвентаризационной информации
                     devices_summary_output(list_of_files.index(file), file, config)   # print to screen
                     ports_file_output(file, curr_path, config)                        # print into file
 
                     # заполняем devinfo
-                    devinfo = fill_devinfo_from_config(config)
+                    devinfo = fill_devinfo_from_config(config, file)
+                    all_devices.append(devinfo)
 
-                    # формирование перечня cdp-связности
+                    # формирование перечня cdp-связей
                     cdp_neighbours = get_cdp_neighbours(config, curr_path, file, devinfo)
+                    all_cdps.append(cdp_neighbours)
 
-                    # формирование перечня CDP-соседей
+                    # формирование перечня активных портов, где CDP видит соседей
                     all_neighbours_file_output(cdp_neighbours)       # print ports with neighbours into file
                     neighbours_file_output(cdp_neighbours)           # print CDP connectivity into file
 
@@ -84,18 +75,113 @@ def main():
                     int_config = get_interfaces_config(config, curr_path, file, devinfo)
                     interfaces_file_output(int_config)              # print interfaces info into file
 
-                    # Trying to find missed devices that can be found in cdp data
+        # завершаем таблицу
+        tbl_footer_out2scr()
+
+        # Trying to find missed devices that can be found in cdp data and save this to "missed_devices.csv" file
         missed_devices = find_missed_devices()
         missed_devices_file_output(missed_devices)
-
-        tbl_footer_out2scr()
-        tbl_files_info_out2scr()
 
         if len(missed_devices) > 0:
             print("В конфигурации CDP найдено {} устройств, конфигурации которых отсутствуют. "
                   "См. файл missed.devices.csv".format(len(missed_devices)))
 
-    elif (namespace.mode == 'all') and (namespace.configdir is not None) and (namespace.compcheck is True):
+        # анализ необходимых VLAN на транковых портах
+#        trunking_analisys()
+
+
+        # TODO: наверное нужно вытащить из цикла процедуры сохранения cdp, interfaces в файлы и делать это где-то здесь
+
+        print("")
+        print("Рисуем схему сети...")
+
+        diagram = drawio_diagram()
+        diagram.add_diagram("Page-1")
+            #        diagram.add_node(id="R2", style=".\\styles\\router.txt")
+            #        diagram.add_node(id="R2", style=router_style)
+            #        diagram.add_node(id="R1", style=router_style)
+            #        diagram.add_node(id="R3", style=router_style)
+            #        diagram.add_link("R1", "R2", src_label="Gi0/1", trgt_label="ge-0/1/2", data={"speed": "1G", "media": "10G-LR"})
+            #        diagram.add_link("R2", "R3", src_label="Gi0/1", trgt_label="ge-0/1/2", data={"speed": "1G", "media": "10G-LR"})
+
+            # собираем и выводим конфигурационную информацию
+#        list_of_files = os.listdir(namespace.configdir)
+
+            # проверяем дубликаты устройств по серийникам
+#        if not check_config_duplicates(list_of_files):
+#            quit()
+
+        # Добавляем на диаграмму все устройства
+        for file in list_of_files:
+            if os.path.isfile(file):
+                with open(file, "r") as conffile:
+                    config = conffile.read()
+                    # заполняем devinfo
+                    devinfo = fill_devinfo_from_config(config, file)
+
+                    if filter_devices(get_only_name(devinfo[0])):
+                        lbtext = get_only_name(devinfo[0]) + "&lt;div&gt;" + devinfo[3]
+                        #                        lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
+                        if devinfo[2] == "Not set":
+                            dev_id = devinfo[0]
+                        else:
+                            dev_id = devinfo[0] + "." + devinfo[2]
+                        diagram.add_node(id=dev_id, label=lbtext, style=get_dev_style_from_model(devinfo[3])[0],
+                                        width=(get_dev_style_from_model(devinfo[3])[1]),
+                                        height=(get_dev_style_from_model(devinfo[3])[2]),
+                                        data={"IP": devinfo[1], "Serial": devinfo[4]})
+                    else:
+                        print("skipped: " + devinfo[0])
+
+            # Добавляем на диаграмму все связи между устройствами
+        for file in list_of_files:
+            if os.path.isfile(file):
+                with open(file, "r") as conffile:
+                    config = conffile.read()
+                    # заполняем devinfo
+                    devinfo = fill_devinfo_from_config(config, file)
+                    # формирование перечня cdp-связности
+                    cdp_neighbours = get_cdp_neighbours(config, curr_path, file, devinfo)
+                    # ToDo: provide actual data info in links
+                    for i in range(0, len(cdp_neighbours)):
+                        if (filter_devices(get_only_name(cdp_neighbours[i][1])) and filter_devices(
+                            get_only_name(cdp_neighbours[i][5]))):
+                                linkstyle = get_link_style_from_model(cdp_neighbours[i][4])
+                                diagram.add_link(cdp_neighbours[i][1], cdp_neighbours[i][5],
+                                src_label=shorten_ifname(cdp_neighbours[i][4]),
+                                trgt_label=shorten_ifname(cdp_neighbours[i][8]), style=linkstyle,
+                                data={"speed": "1G", "media": "10G-LR"})
+                        else:
+                            print("skipped: " + cdp_neighbours[i][1] + " - " + cdp_neighbours[i][5])
+
+        diagram.layout(algo="drl")
+        diagram.dump_file(filename="network_graph.drawio", folder="./output/")
+
+        # Добавляем на диаграмму все устройства
+        for file in list_of_files:
+            if os.path.isfile(file):
+                with open(file, "r") as conffile:
+                    config = conffile.read()
+                    # заполняем devinfo
+                    devinfo = fill_devinfo_from_config(config, file)
+
+                    if filter_devices(get_only_name(devinfo[0])):
+                        lbtext = get_only_name(devinfo[0]) + "&lt;div&gt;" + devinfo[3]
+                        #                        lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
+                        if devinfo[2] == "Not set":
+                            dev_id = devinfo[0]
+                        else:
+                            dev_id = devinfo[0] + "." + devinfo[2]
+                        diagram.add_node(id=dev_id, label=lbtext, style=get_dev_style_from_model(devinfo[3])[0],
+                                        width=(get_dev_style_from_model(devinfo[3])[1]),
+                                        height=(get_dev_style_from_model(devinfo[3])[2]),
+                                        data={"IP": devinfo[1], "Serial": devinfo[4]})
+                    else:
+                        print("skipped: " + devinfo[0])
+        print("Finished processing files in folder: " + str(namespace.configdir))
+        # выводим summary что где лежит
+        tbl_files_info_out2scr()
+    elif (namespace.configdir is not None) and (namespace.compcheck is True):
         # проверяем compliance
         list_of_files = os.listdir(namespace.configdir)
 
@@ -116,7 +202,6 @@ def main():
                     # формирование списка инвентаризационной информации
 #                    devices_summary_output(list_of_files.index(file), file, config)   # print to screen
 #                    ports_file_output(file, curr_path, config)                        # print into file
-
                     # заполняем devinfo
                     # devinfo=fill_devinfo_from_config(config)
 
@@ -127,84 +212,7 @@ def main():
         tbl_complfooter_out2scr()
         tbl_files_info_out2scr()
 
-    elif (namespace.mode == 'all') and (namespace.configdir is not None) and (namespace.picture is True):
-        diagram = drawio_diagram()
-        diagram.add_diagram("Page-1")
-        print("Starting processing files in folder: " + str(namespace.configdir))
-#        diagram.add_node(id="R2", style=".\\styles\\router.txt")
-#        diagram.add_node(id="R2", style=router_style)
-#        diagram.add_node(id="R1", style=router_style)
-#        diagram.add_node(id="R3", style=router_style)
-#        diagram.add_link("R1", "R2", src_label="Gi0/1", trgt_label="ge-0/1/2", data={"speed": "1G", "media": "10G-LR"})
-#        diagram.add_link("R2", "R3", src_label="Gi0/1", trgt_label="ge-0/1/2", data={"speed": "1G", "media": "10G-LR"})
 
-        # собираем и выводим конфигурационную информацию
-        list_of_files = os.listdir(namespace.configdir)
-
-        # проверяем дубликаты устройств по серийникам
-        if not check_config_duplicates(list_of_files):
-            quit()
-
-        # Добавляем на диаграмму все устройства
-        for file in list_of_files:
-            if os.path.isfile(file):
-                with open(file, "r") as conffile:
-                    config = conffile.read()
-                    # заполняем devinfo
-                    devinfo = fill_devinfo_from_config(config)
-
-                    if filter_devices(get_only_name(devinfo[0])):
-                        lbtext = get_only_name(devinfo[0]) + "&lt;div&gt;" + devinfo[3]
-#                        lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
-                        if devinfo[2] == "Not set":
-                            dev_id = devinfo[0]
-                        else:
-                            dev_id = devinfo[0]+"."+devinfo[2]
-                        diagram.add_node(id=dev_id, label=lbtext, style=get_dev_style_from_model(devinfo[3])[0], width=(get_dev_style_from_model(devinfo[3])[1]), height=(get_dev_style_from_model(devinfo[3])[2]), data={"IP": devinfo[1], "Serial": devinfo[4]})
-                    else:
-                        print("skipped: " + devinfo[0])
-
-        # Добавляем на диаграмму все связи между устройствами
-        for file in list_of_files:
-            if os.path.isfile(file):
-                with open(file, "r") as conffile:
-                    config = conffile.read()
-                    # заполняем devinfo
-                    devinfo = fill_devinfo_from_config(config)
-                    # формирование перечня cdp-связности
-                    cdp_neighbours = get_cdp_neighbours(config, curr_path, file, devinfo)
-                    # ToDo: provide actual data info in links
-                    for i in range(0, len(cdp_neighbours)):
-                        if (filter_devices(get_only_name(cdp_neighbours[i][1])) and filter_devices(get_only_name(cdp_neighbours[i][5]))):
-                            linkstyle = get_link_style_from_model(cdp_neighbours[i][4])
-                            diagram.add_link(cdp_neighbours[i][1], cdp_neighbours[i][5], src_label=shorten_ifname(cdp_neighbours[i][4]), trgt_label=shorten_ifname(cdp_neighbours[i][8]), style=linkstyle, data={"speed": "1G", "media": "10G-LR"})
-                        else:
-                            print("skipped: " + cdp_neighbours[i][1] + " - " + cdp_neighbours[i][5])
-
-        diagram.layout(algo="drl")
-        diagram.dump_file(filename="network_graph.drawio", folder="./output/")
-        tbl_files_info_out2scr()
-
-
-        # Добавляем на диаграмму все устройства
-        for file in list_of_files:
-            if os.path.isfile(file):
-                with open(file, "r") as conffile:
-                    config = conffile.read()
-                    # заполняем devinfo
-                    devinfo = fill_devinfo_from_config(config)
-
-                    if filter_devices(get_only_name(devinfo[0])):
-                        lbtext = get_only_name(devinfo[0]) + "&lt;div&gt;" + devinfo[3]
-#                        lbtext = lbtext.replace(" +", "\u00a0").replace("\n", " ")
-                        if devinfo[2] == "Not set":
-                            dev_id = devinfo[0]
-                        else:
-                            dev_id = devinfo[0]+"."+devinfo[2]
-                        diagram.add_node(id=dev_id, label=lbtext, style=get_dev_style_from_model(devinfo[3])[0], width=(get_dev_style_from_model(devinfo[3])[1]), height=(get_dev_style_from_model(devinfo[3])[2]), data={"IP": devinfo[1], "Serial": devinfo[4]})
-                    else:
-                        print("skipped: " + devinfo[0])
-        print("Finished processing files in folder: " + str(namespace.configdir))
 
 if __name__ == "__main__":
     main()

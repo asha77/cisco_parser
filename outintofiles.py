@@ -21,7 +21,7 @@ def init_files():
 
     # инициализация файла c основным выводом
     resfile = open("output\cparser_output.csv", "w")
-    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
+    resfile.write("Configfile;Hostname;Mng IP from filename;Mng from config (try);Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
     resfile.close()
 
     # инициализация файла с портами, на которых есть соседи
@@ -154,9 +154,10 @@ def ports_file_output(file, curr_path, config):
             ports_used = ports_used + 1
 
             # вывод в файл информации по устройстваи и утилизированным портам
-    resfile.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1d};{8:1d} \n'.format(
+    resfile.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1d};{9:1d} \n'.format(
         file,
         obtain_hostname(config),
+        obtain_mng_ip_from_filename(file),
         obtain_mng_ip_from_config(config),
         obtain_domain(config),
         obtain_model(config),

@@ -1,4 +1,5 @@
 import re
+from netaddr import *
 
 
 def obtain_stack_members(config):
@@ -612,14 +613,55 @@ def obtain_software_family(config):
                     return "Not Found"
 
 
-def obtain_mng_ip_from_config(filename):
+def obtain_mng_ip_from_filename(filename):
     '''
-    Extract mng ip - TODO: need to rethink - it returns just first ip on interface !!!!!
+    Extract mng ip from filename
     '''
 
-    match = re.search(" ip address ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
+    # ip default-gateway 10.2.254.1
+    # Gateway of last resort is 10.2.220.1 to network 0.0.0.0
+    # Default gateway is 10.2.254.1
+
+    gw_match = re.search("([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
+    if gw_match:
+        return gw_match.group(1).strip()
+    else:
+        return "Not Found"
+
+
+def obtain_mng_ip_from_config(filename):
+    '''
+    Extract mng ip - TODO: situations like "Gateway of last resort is 0.0.0.0 to network 0.0.0.0" - on routers not handled correctly (Not found)
+    '''
+
+    # ip default-gateway 10.2.254.1
+    # Gateway of last resort is 10.2.220.1 to network 0.0.0.0
+    # Default gateway is 10.2.254.1
+    gw_match = re.search("Gateway of last resort is ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
+    if gw_match:
+        gwip = IPAddress(gw_match.group(1).strip())
+    else:
+        gw_match = re.search("Default gateway is ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
+        if gw_match:
+            gwip = IPAddress(gw_match.group(1).strip())
+        else:
+            gw_match = re.search("ip default-gateway ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
+            if gw_match:
+                gwip = IPAddress(gw_match.group(1).strip())
+            else:
+                gwip = "0.0.0.0"    # Gateway not found, fake gwip
+
+    match = re.findall("\sip address ([0-9]+.[0-9]+.[0-9]+.[0-9]+) ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
+    found = False
     if match:
-        return match.group(1).strip()
+        for i in range(len(match)):
+            ip = IPNetwork(match[i][0])
+            ip.netmask = match[i][1]
+            if gwip in ip:
+                found = True
+                return match[i][0]
+        if found == False:
+            return "Not Found"
     else:
         return "Not Found"
 
@@ -704,9 +746,9 @@ def check_stormcontrol(filename):
         return "Not set"
 
 
-def fill_devinfo_from_config(config):
+def fill_devinfo_from_config(config, filename):
     devinfo = [obtain_hostname(config),
-               obtain_mng_ip_from_config(config),
+               obtain_mng_ip_from_filename(filename),
                obtain_domain(config),
                obtain_model(config),
                obtain_serial(config),
@@ -800,6 +842,7 @@ def get_access_vlan_ids(ints):
                 vlan_ids.add(ints[i][4])
     return (vlan_ids)
 
+
 def get_native_vlan_ids(ints):
     '''
     Extract native vlan ids on any port
@@ -840,9 +883,11 @@ def get_trunk_vlan_ids(ints):
         if ints[i][5] == "trunk":
             if ints[i][7] != "":
                 vlan_ids.add(ints[i][7])
+            else:
+                vlan_ids.add("all")
 
-    if len(vlan_ids) == 0:
-        vlan_ids.add("all")
+#    if len(vlan_ids) == 0:
+#        vlan_ids.add("all")
     return (vlan_ids)
 
 
