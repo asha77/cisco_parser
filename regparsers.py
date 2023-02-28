@@ -1,5 +1,6 @@
 import re
 from netaddr import *
+from cisco_parser import devices
 
 
 def obtain_stack_members(config):
@@ -11,9 +12,9 @@ def obtain_stack_members(config):
 
 
 def obtain_hostname(config):
-    '''
+    """
     Extract device hostname
-    '''
+    """
 
     match = re.search("hostname (.*)", config)
     if match:
@@ -23,9 +24,9 @@ def obtain_hostname(config):
 
 
 def obtain_timezone(config):
-    '''
+    """
     Extract clock timezone value
-    '''
+    """
 
     match = re.search("clock timezone (.*)", config)
     if match:
@@ -756,9 +757,21 @@ def fill_devinfo_from_config(config, filename):
     return devinfo
 
 
+
+def fill_devinfo_to_model_from_config(devindex, config, file):
+    devices[devindex]['config_filename'] = file
+    devices[devindex]['hostname'] = obtain_hostname(config)
+    devices[devindex]['mgmt_ipv4_from_filename'] = obtain_mng_ip_from_filename(file)
+    devices[devindex]['domain_name'] = obtain_domain(config)
+    devices[devindex]['model'] = obtain_model(config)
+    devices[devindex]['serial'] = obtain_serial(config)
+    devices[devindex]['sw_version'] = obtain_software_version(config)
+    return
+
+
 def get_type_of_sw_from_hostname(hostname):
     '''
-    Extract switch type from device hostname
+    Extract switch type from device hostname (if any naming convention exist)
     '''
 
     match = re.search("\S+asw\S+", hostname)

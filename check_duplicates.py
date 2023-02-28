@@ -1,5 +1,5 @@
 import os
-from regparsers import *
+from regparsers import obtain_serial
 
 
 def check_config_duplicates(list_of_files):
@@ -33,5 +33,4 @@ def check_config_duplicates(list_of_files):
                     print("Файл: " + serial_list[num][1] + " Serial: " + serial_list[num][2])
                     print("Файл: " + serial_list[num2][1] + " Serial: " + serial_list[num2][2])
                 return(False)
-
     return(True)

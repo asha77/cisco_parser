@@ -1,6 +1,6 @@
 import os
 from txtfsmparsers import *
-from cisco_parser import compliance_result
+#from cisco_parser import compliance_result
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.writer.excel import save_workbook
@@ -94,7 +94,7 @@ def all_neighbours_file_output(all_neighbours):
 def neighbours_file_output(all_neighbours):
     cdp_neighbours = open("output\\cdp_nei_output.csv", "a")
 #    cdp_neighbours.write("ConfigFile;Source hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
-
+#   ConfigFile	Source hostname	Source Model	Source Mng IP	Source port	Dest hostname	Dest Model	Dest IP	Dest portn
     for i in range(len(all_neighbours)):
         cdp_neighbours.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1s} \n'.format(
             all_neighbours[i][0],

@@ -1,10 +1,10 @@
 import argparse
 from out_to_screen import *
 from outintofiles import *
-from check_duplicates import *
+from check_duplicates import check_config_duplicates
 from txtfsmparsers import *
 from diagram_utils import *
-# from datamodel import *
+from datamodel import *
 import os
 import pathlib
 from N2G import drawio_diagram
@@ -14,8 +14,7 @@ compliance_result = []
 all_devices = []
 all_interfaces = []
 all_cdps = []
-
-# device = config_entity
+devices = []
 
 
 def createparser():
@@ -47,33 +46,43 @@ def main():
         if not check_config_duplicates(list_of_files):
             quit()
 
+        devindex = 0
+
         # Выводим базовую информацию по всем устройствам на экран и в файл
         for file in list_of_files:
             if os.path.isfile(file):
                 with open(file, "r") as conffile:
                     config = conffile.read()
+                    devices.append(config_entity)    # create new empty instance of device model
+
                     # формирование списка инвентаризационной информации
-                    devices_summary_output(list_of_files.index(file), file, config)   # print to screen
-                    ports_file_output(file, curr_path, config)                        # print into file
+                    devices_summary_output(list_of_files.index(file), file, config)   # print to screen TODO: to the output section in the end
+                    ports_file_output(file, curr_path, config)               # print into file TODO: to the output section in the end
 
                     # заполняем devinfo
-                    devinfo = fill_devinfo_from_config(config, file)
-                    all_devices.append(devinfo)
+                    devinfo = fill_devinfo_from_config(config, file)         # TODO: to be deleted
+#                    fill_devinfo_to_model_from_config(devindex, config, file)   # add to model
+
+                    all_devices.append(devinfo)                              # TODO: to be deleted
 
                     # формирование перечня cdp-связей
-                    cdp_neighbours = get_cdp_neighbours(config, curr_path, file, devinfo)
-                    all_cdps.append(cdp_neighbours)
+                    cdp_neighbours = get_cdp_neighbours(config, curr_path, file, devinfo)       # TODO: to be deleted
+#                    get_cdp_neighbours_to_model(devindex, config, curr_path)
+
+                    all_cdps.append(cdp_neighbours)                                             # TODO: to be deleted
 
                     # формирование перечня активных портов, где CDP видит соседей
-                    all_neighbours_file_output(cdp_neighbours)       # print ports with neighbours into file
-                    neighbours_file_output(cdp_neighbours)           # print CDP connectivity into file
+                    all_neighbours_file_output(cdp_neighbours)       # print ports with neighbours into file TODO: to the output section in the end
+                    neighbours_file_output(cdp_neighbours)           # print CDP connectivity into file TODO: to the output section in the end
 
                     # формирование перечня портов, за которым видно много MAC-адресов
-                    many_macs_file_output(config, curr_path, cdp_neighbours, devinfo)
+#                    many_macs_file_output(config, curr_path, cdp_neighbours, devinfo)  # optional - to rework
 
                     # формирование перечня VLAN на портах
-                    int_config = get_interfaces_config(config, curr_path, file, devinfo)
-                    interfaces_file_output(int_config)              # print interfaces info into file
+                    int_config = get_interfaces_config(config, curr_path, file, devinfo)    # TODO: to be deleted
+#                    get_interfaces_config_to_model(devindex, config, curr_path,)
+
+                    interfaces_file_output(int_config)              # print interfaces info into file TODO: to the output section in the end
 
         # завершаем таблицу
         tbl_footer_out2scr()
