@@ -1,0 +1,9 @@
+Value Required LOCAL_PORT (\S+)
+Value Required CHASSIS_ID (\S+)
+Value Required PORT_ID (\S+)
+Value PORT_DESC (\S*)
+Value CHASSIS_NAME (\S+)
+
+Start
+  ^\s+LocalPort\s+|\s+ChassisId\s+PortId\s+PortDescr\s+SysName\n^\s+[\s\+\-]*-
+  ^\s+${LOCAL_PORT}\s+\|\s+${CHASSIS_ID}\s+${PORT_ID}\s+${PORT_DESC}\s+${CHASSIS_NAME}$$ -> Record

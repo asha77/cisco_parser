@@ -1,0 +1,15 @@
+Value Required LOCAL_PORT (\d+)
+Value CHASSIS_ID (([0-9A-Fa-f]{2}\s){5}[0-9A-Fa-f]{2})
+Value CHASSIS_ID2 (\S+)
+Value PORT_ID (\d+)
+Value PORT_ID2 (([0-9A-Fa-f]{2}\s){5}[0-9A-Fa-f]{2})
+Value PORT_ID3 (\S+)
+Value PORT_DESC (\d+)
+Value PORT_DESC2 (\S+\s*\d*)
+Value CHASSIS_NAME (\S+)
+
+Start
+  ^\s+LocalPort\s+|\s+ChassisId\s+PortId\s+PortDescr\s+SysName\n^\s+[\s\+\-]*-
+  ^\s+${LOCAL_PORT}\s+\|\s+${CHASSIS_ID}\s+${PORT_ID}\s+${PORT_DESC}\s+${CHASSIS_NAME}$$ -> Record
+  ^\s+${LOCAL_PORT}\s+\|\s+${CHASSIS_ID}\s+${PORT_ID2}\s+${PORT_DESC2}\s+${CHASSIS_NAME}$$ -> Record
+  ^\s+${LOCAL_PORT}\s+\|\s+${CHASSIS_ID2}\s+${PORT_ID3}\s+${CHASSIS_NAME}$$ -> Record

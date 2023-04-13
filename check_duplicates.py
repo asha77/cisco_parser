@@ -1,5 +1,5 @@
 import os
-from regparsers import obtain_serial
+import regparsers
 
 
 def check_config_duplicates(list_of_files):
@@ -17,7 +17,7 @@ def check_config_duplicates(list_of_files):
                 serial_list.append([])
                 serial_list[filenum].append(filenum + 1)
                 serial_list[filenum].append(file)
-                serial_list[filenum].append(obtain_serial(config))
+                serial_list[filenum].append(regparsers.obtain_serial(config))
                 filenum = filenum + 1
 
     # ищем дупликаты в массиве с серийниками

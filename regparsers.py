@@ -1,6 +1,5 @@
 import re
-from netaddr import *
-from cisco_parser import devices
+import netaddr
 
 
 def obtain_stack_members(config):
@@ -16,11 +15,19 @@ def obtain_hostname(config):
     Extract device hostname
     """
 
-    match = re.search("hostname (.*)", config)
+    match = re.search('hostname\s(.*)', config)
     if match:
-        return match.group(1).strip()
+        return match.group(1).strip().replace('"', '')
     else:
-        return "Not Found"
+        match = re.search('sysname\s(.*)', config)
+        if match:
+            return match.group(1).strip().replace('"', '')
+        else:
+            match = re.search('snmp-server\ssysname\s(.*)', config)
+            if match:
+                return match.group(1).strip().replace('"', '')
+            else:
+                return "Not Found"
 
 
 def obtain_timezone(config):
@@ -523,9 +530,7 @@ def obtain_model(config):
         return match.group(1).strip()
     else:
 #        match = re.search("\wisco (.*) \(.*\) \w* (with )*\d+K\/\d+K bytes of memory.", config)
-
         match = re.search("\wisco (\S+) .* (with)*\d+K\/\d+K bytes of memory.", config)
-
         if match:
             return match.group(1).strip()
         else:
@@ -537,7 +542,50 @@ def obtain_model(config):
                 if match:
                     return "Cisco IOS vRouter "
                 else:
-                    return "Not found"
+                    match = re.search(";\s(\S+)\sConfiguration\sEditor;", config)
+                    if match:
+                        return get_hp_model_from_pn(match.group(1).strip())
+                    else:
+                        match = re.search('System Description "HPE OfficeConnect Switch.+\)\s(\S+),\s.+', config)
+                        if match:
+                            return get_hp_model_from_pn(match.group(1).strip())
+                        else:
+                            match = re.search('\sversion\s(\S+),\sRelease\s(\S+)\n#\n\ssysname\s(\S+)', config)
+                            if match:
+                                return 'hp_switch'
+                            else:
+                                return "Not found"
+
+
+def get_hp_model_from_pn(partnumber):
+    if partnumber == 'J9781A':
+        return 'HPE Aruba 2530-48'
+    if partnumber == 'J9775A':
+        return 'HPE Aruba 2530-48G'
+    if partnumber == 'J9773A':
+        return 'HPE Aruba 2530-24G-PoE+'
+    if partnumber == 'J9782A':
+        return 'HPE Aruba 2530-24'
+    if partnumber == 'JL385A':
+        return 'HPE 1920S-24G-2SFP-PoE+'
+    if partnumber == 'J9774A':
+        return 'HPE 2530-8G-PoE+'
+    if partnumber == 'J9783A':
+        return 'HPE Aruba 2530-8FE'
+    if partnumber == 'J9780A':
+        return 'HPE Aruba 2530-8-PoE+'
+    if partnumber == 'J9776A':
+        return 'HPE Aruba 2530-24G-PoE+'
+    if partnumber == 'J9772A':
+        return 'HPE Aruba 2530-48G-PoE+'
+    if partnumber == 'J9778A':
+        return 'HPE Aruba 2530-48G-PoE+'
+    if partnumber == 'J9779A':
+        return 'HPE Aruba 2530-24-PoE+'
+    if partnumber == 'hpStack_WC':
+        return 'HPE Aruba-VSF-2930F'
+    else:
+        return 'HP unknown'
 
 
 def obtain_serial(config):
@@ -552,7 +600,16 @@ def obtain_serial(config):
         match = re.search("\s*\wrocessor \woard ID (.*)", config)
         if match:
             return match.group(1).strip()
-        return "Not Found"
+        else:
+            match = re.search("\s*ROM Version\s*:\s*\S*\s*Serial\sNumber\s*:\s*(\S+)", config)
+            if match:
+                return match.group(1).strip()
+            else:
+                match = re.search("\s*Serial\sNumber\s*:\s*(\S+)", config)
+                if match:
+                    return match.group(1).strip()
+                else:
+                    return "Not Found"
 
 
 def obtain_domain(config):
@@ -567,51 +624,30 @@ def obtain_domain(config):
         return "Not set"
 
 
-def obtain_software_version(config):
+def obtain_software_version(os, config):
     '''
     Extract software version
     '''
 
-    family = obtain_software_family(config)
-
-    if family == "IOS XE":
+    # os: cisco_ios_xe, cisco_ios, cisco_ios_xr, arista_eos, cisco_nx_os, aruba_aos-s, hpe_os
+    if os == 'cisco_ios_xe':
         match = re.search("Cisco .+ Version ([0-9.()A-Za-z]+)", config)
         if match:
             return match.group(1).strip()
-    elif family == "IOS":
+    elif os == 'cisco_ios':
         match = re.search("Cisco .+ Version ([0-9.()A-Za-z]+)", config)
         if match:
             return match.group(1).strip()
-    elif family == "NX-OS":
+    elif os == 'cisco_nx_os':
         match = re.search("\ *NXOS: version (.*)", config)
+        if match:
+            return match.group(1).strip()
+    elif os == 'aruba_aos-s':
+        match = re.search("; \S+ Configuration Editor; Created on release #(\S+)", config)
         if match:
             return match.group(1).strip()
     else:
         return "Not Found"
-
-
-def obtain_software_family(config):
-    '''
-    Extract software family
-    '''
-
-    match = re.search(".*show version\n*Cisco IOS.XE .oftware", config)
-    if match:
-        return "IOS XE"
-    else:
-        match = re.search("Cisco IOS Software \[Denali\]", config)
-        if match:
-            return "IOS XE"
-        else:
-            match = re.search("(.*)show version\nCisco Nexus Operating System", config)
-            if match:
-                return "NX-OS"
-            else:
-                match = re.search("(.*)show version\n*(\s)*Cisco IOS Software", config)
-                if match:
-                    return "IOS"
-                else:
-                    return "Not Found"
 
 
 def obtain_mng_ip_from_filename(filename):
@@ -630,7 +666,7 @@ def obtain_mng_ip_from_filename(filename):
         return "Not Found"
 
 
-def obtain_mng_ip_from_config(filename):
+def obtain_mng_ip_from_config(device, config):
     '''
     Extract mng ip - TODO: situations like "Gateway of last resort is 0.0.0.0 to network 0.0.0.0" - on routers not handled correctly (Not found)
     '''
@@ -638,33 +674,87 @@ def obtain_mng_ip_from_config(filename):
     # ip default-gateway 10.2.254.1
     # Gateway of last resort is 10.2.220.1 to network 0.0.0.0
     # Default gateway is 10.2.254.1
-    gw_match = re.search("Gateway of last resort is ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
-    if gw_match:
-        gwip = IPAddress(gw_match.group(1).strip())
-    else:
-        gw_match = re.search("Default gateway is ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
+
+    if device['os'] == 'cisco_ios_xe' or device['os'] == 'cisco_ios' or device['os'] == 'cisco_ios_xr' or device['os'] == 'cisco_nx_os':
+        gw_match = re.search("Gateway of last resort is ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
         if gw_match:
-            gwip = IPAddress(gw_match.group(1).strip())
+            gwip = netaddr.IPAddress(gw_match.group(1).strip())
         else:
-            gw_match = re.search("ip default-gateway ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
+            gw_match = re.search("Default gateway is ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
             if gw_match:
-                gwip = IPAddress(gw_match.group(1).strip())
+                gwip = netaddr.IPAddress(gw_match.group(1).strip())
+            else:
+                gw_match = re.search("ip default-gateway ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+                if gw_match:
+                    gwip = netaddr.IPAddress(gw_match.group(1).strip())
+                else:
+                    gwip = "0.0.0.0"    # Gateway not found, fake gwip
+
+        match = re.findall("\sip address ([0-9]+.[0-9]+.[0-9]+.[0-9]+) ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+        found = False
+        if match:
+            for i in range(len(match)):
+                ip = netaddr.IPNetwork(match[i][0])
+                ip.netmask = match[i][1]
+                if gwip in ip:
+                    found = True
+                    return match[i][0]
+            if found == False:
+                return "Not Found"
+        else:
+            return "Not Found"
+
+    # aruba_aos-s, hpe_os
+    if device['os'] == 'aruba_aos-s':
+        gw_match = re.search("ip route 0.0.0.0 0.0.0.0\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+        if gw_match:
+            gwip = netaddr.IPAddress(gw_match.group(1).strip())
+        else:
+            gw_match = re.search("\s*ip default-gateway\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+            if gw_match:
+                gwip = netaddr.IPAddress(gw_match.group(1).strip())
             else:
                 gwip = "0.0.0.0"    # Gateway not found, fake gwip
 
-    match = re.findall("\sip address ([0-9]+.[0-9]+.[0-9]+.[0-9]+) ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", filename)
-    found = False
-    if match:
-        for i in range(len(match)):
-            ip = IPNetwork(match[i][0])
-            ip.netmask = match[i][1]
-            if gwip in ip:
-                found = True
-                return match[i][0]
-        if found == False:
+        match = re.findall("\s+ip address\s([0-9]+.[0-9]+.[0-9]+.[0-9]+) ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+        found = False
+        if match:
+            for i in range(len(match)):
+                ip = netaddr.IPNetwork(match[i][0])
+                ip.netmask = match[i][1]
+                if gwip in ip:
+                    found = True
+                    return match[i][0]
+            if found == False:
+                return "Not Found"
+        else:
             return "Not Found"
-    else:
-        return "Not Found"
+
+    if device['os'] == 'hpe_os':
+        match = re.search("\s*network parms\s([0-9]+.[0-9]+.[0-9]+.[0-9]+).*", config)
+        if match:
+            return match.group(1).strip()
+
+    if device['os'] == 'hpe_comware':       # TODO: check if two default gateways present
+        gw_match = re.search("\s+ip route-static 0.0.0.0 0.0.0.0\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+        if gw_match:
+            gwip = netaddr.IPAddress(gw_match.group(1).strip())
+
+        match = re.findall("\s+ip address\s([0-9]+.[0-9]+.[0-9]+.[0-9]+) ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+        found = False
+        if match:
+            for i in range(len(match)):
+                ip = netaddr.IPNetwork(match[i][0])
+                ip.netmask = match[i][1]
+                if gwip in ip:
+                    found = True
+                    return match[i][0]
+            if found == False:
+                return "Not Found"
+        else:
+            return "Not Found"
+
+    return "Not Found"      # if nothing found
 
 
 def check_bpduguard(filename):
@@ -747,26 +837,18 @@ def check_stormcontrol(filename):
         return "Not set"
 
 
-def fill_devinfo_from_config(config, filename):
-    devinfo = [obtain_hostname(config),
-               obtain_mng_ip_from_filename(filename),
-               obtain_domain(config),
-               obtain_model(config),
-               obtain_serial(config),
-               obtain_software_version(config)]
-    return devinfo
-
-
-
-def fill_devinfo_to_model_from_config(devindex, config, file):
-    devices[devindex]['config_filename'] = file
-    devices[devindex]['hostname'] = obtain_hostname(config)
-    devices[devindex]['mgmt_ipv4_from_filename'] = obtain_mng_ip_from_filename(file)
-    devices[devindex]['domain_name'] = obtain_domain(config)
-    devices[devindex]['model'] = obtain_model(config)
-    devices[devindex]['serial'] = obtain_serial(config)
-    devices[devindex]['sw_version'] = obtain_software_version(config)
-    return
+def fill_devinfo_to_model_from_config(empty_device, config, file):
+    empty_device['family'] = obtain_device_family(config)
+    empty_device['os'] = obtain_device_os(config)
+    empty_device['config_filename'] = file
+    empty_device['hostname'] = obtain_hostname(config)
+    empty_device['mgmt_ipv4_from_filename'] = obtain_mng_ip_from_filename(file)
+    empty_device['mgmt_v4_autodetect'] = obtain_mng_ip_from_config(empty_device, config)
+    empty_device['domain_name'] = obtain_domain(config)
+    empty_device['model'] = obtain_model(config)
+    empty_device['serial'] = obtain_serial(config)
+    empty_device['sw_version'] = obtain_software_version(empty_device['os'], config)
+    return empty_device
 
 
 def get_type_of_sw_from_hostname(hostname):
@@ -802,6 +884,19 @@ def get_num_of_access_int_from_interface_list(ints):
     return (intcount)
 
 
+def get_number_of_acc_int(interfaces):
+    '''
+    Extract num of access interfaces from list of interfaces
+    '''
+    intcount = 0
+
+    for inter in interfaces:
+        if inter['switchport_mode'] == 'access':
+            intcount = intcount + 1
+
+    return intcount
+
+
 def get_num_of_trunk_int_from_interface_list(ints):
     '''
     Extract num of trunk interfaces from list of interfaces
@@ -816,6 +911,19 @@ def get_num_of_trunk_int_from_interface_list(ints):
     return (intcount)
 
 
+def get_number_of_trunk_int(ints):
+    '''
+    Extract num of trunk interfaces from list of interfaces
+    '''
+
+    intcount = 0
+
+    for inter in ints:
+        if inter['switchport_mode'] == 'trunk':
+            intcount = intcount + 1
+    return intcount
+
+
 def get_num_of_dot1x_interfaces(ints):
     '''
     Extract num of interfaces with dot1x settings
@@ -825,6 +933,18 @@ def get_num_of_dot1x_interfaces(ints):
 
     for i in range(0, len(ints)):
         if ints[i][11] != "":
+            intcount = intcount + 1
+    return (intcount)
+
+
+def get_number_of_dot1x_ints(ints):
+    '''
+    Extract num of interfaces with dot1x settings
+    '''
+    intcount = 0
+
+    for inter in ints:
+        if (not inter['dot1x_mab'] == '') or (not inter['dot1x_auth_order'] == '') or (not inter['dot1x_auth_prio'] == '') or (not inter['dot1x_auth_port_control'] == ''):
             intcount = intcount + 1
     return (intcount)
 
@@ -842,18 +962,51 @@ def get_num_of_ints_with_ip(ints):
     return (intcount)
 
 
+def get_number_of_ints_with_ip(ints):
+    '''
+    Extract num of interfaces with ip addresses
+    '''
+    i: int = 0
+    intcount = 0
+
+    for inter in ints:
+        if not inter['ipv4'] == '':
+            intcount = intcount + 1
+    return intcount
+
+
 def get_access_vlan_ids(ints):
     '''
     Extract access vlan id numbers
     Returns set of vlan id values
     '''
-    i: int = 0
+
     vlan_ids = set()
-    for i in range(0, len(ints)):
-        if ints[i][5] == "access":
-            if ints[i][4] != "":
-                vlan_ids.add(ints[i][4])
-    return (vlan_ids)
+    for inter in ints:
+        if inter['switchport_mode'] == 'access':
+            if not inter['access_vlan'] == '':
+                vlan_ids.add(inter['access_vlan'])
+    return vlan_ids
+
+
+def get_access_vlans(device):
+    '''
+    Extract access vlan id numbers
+    Returns set of vlan id values
+    '''
+
+#    vlan_ids = set()
+    vlan_ids = {}
+
+    for interface in device['interfaces']:
+        if interface['switchport_mode'] == 'access':
+            if not interface['access_vlan'] == '':
+                try:
+                    vlan_ids[int(interface['access_vlan'])] = device['vlans'][int(interface['access_vlan'])]
+                except KeyError:
+                    vlan_ids[int(interface['access_vlan'])] = 'not in database'
+    return vlan_ids
+
 
 
 def get_native_vlan_ids(ints):
@@ -861,13 +1014,13 @@ def get_native_vlan_ids(ints):
     Extract native vlan ids on any port
     Returns set of vlan id values
     '''
-    i: int = 0
-    vlan_ids = set()
-    for i in range(0, len(ints)):
-        if ints[i][8] != "":
-            vlan_ids.add(ints[i][8])
-    return (vlan_ids)
 
+    vlan_ids = set()
+
+    for inter in ints:
+        if not inter['native_vlan'] == '':
+            vlan_ids.add(inter['native_vlan'])
+    return vlan_ids
 
 
 def get_voice_vlan_ids(ints):
@@ -875,14 +1028,14 @@ def get_voice_vlan_ids(ints):
     Extract voice vlan ids on access ports
     Returns set of vlan id values
     '''
-    i: int = 0
-    vlan_ids = set()
-    for i in range(0, len(ints)):
-        if ints[i][5] == "access":
-            if ints[i][6] != "":
-                vlan_ids.add(ints[i][6])
-    return (vlan_ids)
 
+    vlan_ids = set()
+
+    for inter in ints:
+        if inter['switchport_mode'] == 'access':
+            if not inter['voice_vlan'] == '':
+                vlan_ids.add(inter['voice_vlan'])
+    return vlan_ids
 
 
 def get_trunk_vlan_ids(ints):
@@ -892,16 +1045,51 @@ def get_trunk_vlan_ids(ints):
     '''
     i: int = 0
     vlan_ids = set()
-    for i in range(0, len(ints)):
-        if ints[i][5] == "trunk":
-            if ints[i][7] != "":
-                vlan_ids.add(ints[i][7])
+    for inter in ints:
+        if inter['switchport_mode'] == 'trunk':
+            if inter['trunk_vlan_ids'] != '':
+                vlan_ids.add(inter['trunk_vlan_ids'])
             else:
                 vlan_ids.add("all")
+    return vlan_ids
 
-#    if len(vlan_ids) == 0:
-#        vlan_ids.add("all")
-    return (vlan_ids)
+
+def get_vlan_ids_on_trunk(trunk_config):
+    '''
+    Extract vlan ids on trunk ports
+    Returns set of vlan id values
+    '''
+    i: int = 0
+    ids = []
+    vlan_ids = set()
+
+    trunk_config = trunk_config.replace(' ', '')
+    ids = trunk_config.split(',')
+    vlan_ids = ids
+
+    if vlan_ids[0] != "":
+        return vlan_ids
+    else:
+        vlan_ids[0] = "all"
+        return vlan_ids
+
+
+
+def get_all_vlan_ids_from_trunk(ints):
+    '''
+    Get all vlan ids fron all trunk ports
+    Returns set of vlan id values
+    '''
+
+    vlan_ids = set()
+
+    for inter in ints:
+        if inter['switchport_mode'] == 'trunk':
+            ids = inter['trunk_vlan_ids']
+            if len(ids) > 0:
+                for i in range(0, len(ids)):
+                    vlan_ids.add(ids[i])
+    return vlan_ids
 
 
 def get_num_of_physical_ints(ints):
@@ -918,6 +1106,19 @@ def get_num_of_physical_ints(ints):
     return (intcount)
 
 
+def get_number_of_physical_ints(interfaces):
+    '''
+        Extract number of physical interfaces from list of interfaces
+    '''
+    intcount = 0
+
+    for inter in interfaces:
+        if is_physical_interface(inter['int_type']):
+            intcount = intcount + 1
+    return (intcount)
+
+
+
 def get_num_of_svi_ints(ints):
     '''
     Extract num of svi interfaces from list of interfaces
@@ -929,7 +1130,21 @@ def get_num_of_svi_ints(ints):
     for i in range(0, len(ints)):
         if is_svi_int(ints[i][0]):
             intcount = intcount + 1
-    return (intcount)
+    return intcount
+
+
+def get_number_of_svis(ints):
+    '''
+    Extract num of svi interfaces from list of interfaces
+    '''
+
+    i: int = 0
+    intcount = 0
+
+    for inter in ints:
+        if inter['int_type'] == 'svi':
+            intcount = intcount + 1
+    return intcount
 
 
 def is_physical_int(intname):
@@ -947,6 +1162,19 @@ def is_physical_int(intname):
     else:
         return False
 
+
+def is_physical_interface(inttype):
+    '''
+    Check interface type to be physical
+    '''
+    if inttype == 'ethernet':
+        return True
+    elif inttype == 'serial':
+        return True
+    else:
+        return False
+
+
 def is_svi_int(intname):
     '''
     Check interface is SVI
@@ -957,6 +1185,8 @@ def is_svi_int(intname):
     else:
         return False
 
+
+
 def is_portchannel_int(intname):
     '''
     Check interface is port-channel
@@ -965,6 +1195,7 @@ def is_portchannel_int(intname):
         return True
     else:
         return False
+
 
 def is_loopback_int(intname):
     '''
@@ -1009,4 +1240,172 @@ def strip_cisco_from_cdp_name(name):
         return name[len('Cisco '):]
     else:
         return name
+
+
+def strip_serial_from_cdp_name(name):
+    '''
+    Cut serial number "(FART34598BNY)" from nexus device name
+    '''
+
+    if (name.find('(') == -1):
+        return name
+    elif (not name.find('(') == -1):
+        return name[:len(name)-13]
+    else:
+        return name
+
+
+
+def get_num_of_up_access_interfaces(empty_device):
+    num = 0
+    for int in empty_device['interfaces']:
+        if int['switchport_mode'] == 'access':
+            if int['status'] == 'connected':
+                num = num + 1
+    return num
+
+
+def get_number_of_connected_access_ints(ints):
+    num = 0
+    for inter in ints:
+        if inter['status'] == 'connected' and inter['switchport_mode'] == 'access':
+            num = num + 1
+    return num
+
+
+def get_number_of_connected_trunk_ints(ints):
+    num = 0
+    for inter in ints:
+        if inter['status'] == 'connected' and inter['switchport_mode'] == 'trunk':
+            num = num + 1
+    return num
+
+
+def get_number_of_connected_l3_ints(ints):
+    num = 0
+    for inter in ints:
+        if ((inter['status'] == 'connected') and (inter['int_type'] == 'ethernet' or inter['int_type'] == 'serial') and (not inter['ipv4'] == '')):
+            num = num + 1
+    return num
+
+
+def get_interface_type_by_name(int_name):
+    '''
+        Returns type of interface: { ethernet, svi, po, tunnel, loopback, not set }
+        based on interface name i.e. "GigabitEthernet"
+    '''
+
+    if 'Ethernet' in int_name:
+        return 'ethernet'
+    elif 'Port-channel' in int_name:
+        return 'po'
+    elif 'Loopback' in int_name:
+        return 'loopback'
+    elif 'Vlan' in int_name:
+        return 'svi'
+    elif 'Serial' in int_name:
+        return 'serial'
+    elif 'Tunnel' in int_name:
+        return 'tunnel'
+    else:
+        return 'unknown'
+
+
+def ip_mask_to_prefix(ip, octet_mask):
+    if octet_mask != '' and ip != '':
+        ip = netaddr.IPNetwork(ip)
+        ip.netmask = octet_mask
+        return str(ip.ip) + '/' + str(ip.prefixlen)
+    else:
+        return ''
+
+
+def obtain_device_family(config):
+        '''
+        Extract device family: cisco_catalyst, cisco_isr, cisco_nexus, arista_switch, cisco_vrouter, huawei_ce, huawei_s, huawei_ar
+        '''
+        match = re.search("Model\s+\wumber\s*:\s+(.*)", config)
+        if match:
+            return 'cisco_catalyst'
+        else:
+            match = re.search("\wisco\s+(\S+)\s+.*\s+(with)*\d+K\/\d+K\sbytes\sof\smemory.", config)
+            if match:
+                return 'cisco_isr'
+            else:
+                match = re.search("\s+cisco Nexus9000 (.*) Chassis", config)
+                if match:
+                    return 'cisco_nexus'
+                else:
+                    match = re.search("Arista vEOS", config)
+                    if match:
+                        return 'arista_switch'
+                    else:
+                        match = re.search("ROM: Bootstrap program is Linux", config)
+                        if match:
+                            return 'cisco_vrouter'
+                        else:
+                            match = re.search('(Quidway|HUAWEI)\s(\S+)\s+Routing\sSwitch\S*', config)
+                            if match:
+                                return 'huawei_s'
+                            else:
+                                match = re.search('HUAWEI\sCE(\S+)\s+uptime\S*', config)
+                                if match:
+                                    return 'huawei_ce'
+                                else:
+                                    match = re.search('Huawei\s(\S+)\s+Router\s\S*', config)
+                                    if match:
+                                        return 'huawei_ar'
+                                    else:
+                                        match = re.search(';\s(\S+)\sConfiguration\sEditor;', config)
+                                        if match:
+                                            return 'hpe_aruba_switch'
+                                        else:
+                                            match = re.search('System Description "HPE(.+)', config)
+                                            if match:
+                                                return 'hpe_comware_switch'
+                                            else:
+                                                match = re.search('\sversion\s(\S+),\sRelease\s(\S+)\n#\n\ssysname\s(\S+)', config)
+                                                if match:
+                                                    return 'hpe_switch2'
+                                                else:
+                                                    return "Not Found"
+
+
+def obtain_device_os(config):
+    '''
+    Extract software family from show version: cisco_ios_xe, cisco_ios, cisco_ios_xr, arista_eos, cisco_nx_os, huawei_vrp, aruba_aoscx
+    '''
+    match = re.search("Cisco IOS.XE .oftware", config)
+    if match:
+        return 'cisco_ios_xe'
+    else:
+        match = re.search("Cisco Nexus Operating System", config)
+        if match:
+            return 'cisco_nx_os'
+        else:
+            match = re.search("Cisco IOS Software", config)
+            if match:
+                return 'cisco_ios'
+            else:
+                match = re.search("Arista", config)
+                if match:
+                    return 'arista_eos'
+                else:
+                    match = re.search("Huawei Versatile Routing Platform", config)
+                    if match:
+                        return 'huawei_vrp'
+                    else:
+                        match = re.search(';\s(\S+)\sConfiguration\sEditor;', config)
+                        if match:
+                            return 'aruba_aos-s'
+                        else:
+                            match = re.search('!System\sDescription\s"HPE(.+)', config)
+                            if match:
+                                return 'hpe_os'
+                            else:
+                                match = re.search('\sversion\s(\S+),\sRelease\s(\S+)\n#\n\ssysname\s(\S+)', config)
+                                if match:
+                                    return 'hpe_comware'
+                                else:
+                                    return "Not Found"
 
