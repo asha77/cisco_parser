@@ -38,6 +38,10 @@ def shorten_ifname(ifname):
 def filter_devices(devname):
     if ("wap" in devname):
         return False
+    elif "AP-" in devname:      # TODO: custom filter
+        return False
+    elif "esxi" in devname:      # TODO: custom filter
+        return False
     else:
         return True
 

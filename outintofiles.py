@@ -1,9 +1,11 @@
 import os
-from txtfsmparsers import *
-#from cisco_parser import compliance_result
+import txtfsmparsers
+from cisco_parser import compliance_result
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.writer.excel import save_workbook
+import regparsers
+
 
 interfaces = [
     [["Ethernet", "Eth"], "Eth"],
@@ -12,6 +14,8 @@ interfaces = [
     [["TenGigabitEthernet", "Te"], "Te"],
     [["Port-channel", "Po"], "Po"],
     [["Serial"], "Ser"],
+    [["Vlan"], "Vlan"],
+    [["Loopback"], "Lo"],
 ]
 
 
@@ -21,7 +25,7 @@ def init_files():
 
     # инициализация файла c основным выводом
     resfile = open("output\cparser_output.csv", "w")
-    resfile.write("Configfile;Hostname;Mng IP from filename;Mng from config (try);Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
+    resfile.write("Configfile;Hostname;Mng IP from filename;Mng from config;Domain Name;Family;Model;Serial;OS;SW Version;Ports avail.;Ports used\n")
     resfile.close()
 
     # инициализация файла с портами, на которых есть соседи
@@ -43,9 +47,12 @@ def init_files():
     # инициализация файла с конфигурациями интерфейсов
     resfile = open("output\\interfaces.csv", "w")
     resfile.write(
-        'File Name;Hostname;Switch type;Num of Ph ports;Num of SVI ints;Num of access ports;Num of trunk ports;Num of '
-        'access dot1x ports;Num of ints w/IP;Access Vlans;Native Vlans;Voice Vlans;Trunk Vlans;Vlan database;users '
-        'id;iot_toro id;media_equip id;off_equip id;admin id;\n')
+        'File Name;Hostname;Domain;Switch type;Num of physical ports;Num of SVI ints;Num of ints w/IP;Num up l3 phys ints;'
+        'Num access ints;Num up access ints;Num of trunk interfaces;Num up trunk interf;Num access dot1x ports;'
+        'Vlan database;Access Vlans;Trunk Vlans;Proposed vlan list;current native Vlans;current Voice Vlans;'
+        'current users vlan id;current iot_toro vlan id;current media_equip vlan id;current off_equip vlan id;'
+        'current admin vlan id;'
+        '\n')
     resfile.close()
 
     resfile = open("output\\missed_devices.csv", "w")
@@ -91,6 +98,30 @@ def all_neighbours_file_output(all_neighbours):
     all_found_neighbours.close()
 
 
+def all_neighbours_to_file(devices):
+    all_neighbours = open("output\\all_nei_output.csv", "a")
+
+    for devs in devices:
+        for neighbour in devs['cdp_neighbours']:
+            all_neighbours.write('{0:1s};{1:1s};{2:1s} \n'.format(
+                neighbour['local_id'],
+                neighbour['local_model'],
+                neighbour['local_ip_addr'],
+                neighbour['local_interface']
+            ))
+
+            all_neighbours.write('{0:1s};{1:1s};{2:1s} \n'.format(
+                neighbour['remote_id'],
+                neighbour['remote_model'],
+                neighbour['remote_ip_addr'],
+                neighbour['remote_interface']
+            ))
+    all_neighbours.close()
+    return True
+
+
+
+
 def neighbours_file_output(all_neighbours):
     cdp_neighbours = open("output\\cdp_nei_output.csv", "a")
 #    cdp_neighbours.write("ConfigFile;Source hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
@@ -110,9 +141,30 @@ def neighbours_file_output(all_neighbours):
     cdp_neighbours.close()
 
 
+def connectivity_to_file(devices):
+    cdp_neighbours = open("output\\cdp_nei_output.csv", "a")
+#    cdp_neighbours.write("ConfigFile;Source hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
+#   ConfigFile	Source hostname	Source Model	Source Mng IP	Source port	Dest hostname	Dest Model	Dest IP	Dest portn
+
+    for dev in devices:
+        for neighbour in dev['cdp_neighbours']:
+            cdp_neighbours.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1s} \n'.format(
+                dev['config_filename'],
+                neighbour['local_id'],
+                neighbour['local_model'],
+                neighbour['local_ip_addr'],
+                neighbour['local_interface'],
+                neighbour['remote_id'],
+                neighbour['remote_model'],
+                neighbour['remote_ip_addr'],
+                neighbour['remote_interface']
+            ))
+    cdp_neighbours.close()
+
+
 def many_macs_file_output(config, curr_path, neighbours, devinfo):
     mac_template = open(curr_path+'\\nrt_macs.template')
-    mac_fsm = textfsm.TextFSM(mac_template)
+    mac_fsm = txtfsmparsers.textfsm.TextFSM(mac_template)
 
     many_macs = open("output\\many_macs.csv", "a")
 #    many_macs.write("Hostname;VLAN;MAC;PORT\n")
@@ -121,7 +173,7 @@ def many_macs_file_output(config, curr_path, neighbours, devinfo):
     macs = mac_fsm.ParseText(config)
 
     if len(macs) !=0:
-        multimacs = check_macs(macs, 3)
+        multimacs = check_macs(macs, 1)
         for j in range(len(multimacs)):
             nei_found = False
             for k in range(len(neighbours)):
@@ -135,7 +187,7 @@ def many_macs_file_output(config, curr_path, neighbours, devinfo):
 
 def ports_file_output(file, curr_path, config):
     port_template = open(curr_path + '\\nrt_interfaces.template')
-    port_fsm = textfsm.TextFSM(port_template)
+    port_fsm = txtfsmparsers.textfsm.TextFSM(port_template)
 
     resfile = open("output\cparser_output.csv", "a")
 #    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
@@ -156,18 +208,55 @@ def ports_file_output(file, curr_path, config):
             # вывод в файл информации по устройстваи и утилизированным портам
     resfile.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1d};{9:1d} \n'.format(
         file,
-        obtain_hostname(config),
-        obtain_mng_ip_from_filename(file),
-        obtain_mng_ip_from_config(config),
-        obtain_domain(config),
-        obtain_model(config),
-        obtain_serial(config),
-        " " + obtain_software_version(config),
+        regparsers.obtain_hostname(config),
+        regparsers.obtain_mng_ip_from_filename(file),
+        regparsers.obtain_mng_ip_from_config(config),
+        regparsers.obtain_domain(config),
+        regparsers.obtain_model(config),
+        regparsers.obtain_serial(config),
+        " " + regparsers.obtain_software_version(config),
         ports_all,
         ports_used))
     port_template.close()
     resfile.close()
 
+
+
+def summary_file_output(devices):
+    resfile = open("output\cparser_output.csv", "a")
+#    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
+    # ToDo: сортировать по именам при выводе в файл!!!
+    # ToDo: подумать над сравнением двух выводов inventory!!!
+
+    for dev in devices:
+        ports_used = 0
+        ports_all = 0
+
+        for inter in dev['interfaces']:
+            if regparsers.is_physical_interface(inter['int_type']):
+                ports_all = ports_all + 1
+
+                if (inter['status'] == 'connected'):
+                    ports_used = ports_used + 1
+
+        # вывод в файл информации по устройстваи и утилизированным портам
+        resfile.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1s};{9:1s};{10:1d};{11:1d} \n'.format(
+            dev['config_filename'],
+            dev['hostname'],
+            dev['mgmt_ipv4_from_filename'],
+            dev['mgmt_v4_autodetect'],
+            dev['domain_name'],
+            dev['family'],
+            dev['model'],
+            dev['serial'],
+            dev['os'],
+            " " +dev['sw_version'],
+            ports_all,
+            ports_used))
+
+    resfile.close()
+
+    return True
 
 
 def interfaces_file_output(int_config):
@@ -201,7 +290,7 @@ def interfaces_file_output(int_config):
         if (i < len(int_config[13])-1):
             vlans_all = vlans_all + ", "
 
-    f_interfaces.write('{0:1s};{1:1s};{2:1s};{3:4d};{4:4d};{5:4d};{6:4d};{7:4d};{8:4d};{9:1s};{10:1s};{11:1s};{12:1s};{13:1s};{14:1s};{15:1s};{16:1s};{17:1s};{18:1s}\n'.format(
+    f_interfaces.write('{0:1s};{1:1s};{2:1s};{3:4d};{4:4d};{5:4d};{6:4d};{7:4d};{8:4d};{9:1s};{10:1s};{11:1s};{12:1s};{13:1s};{14:1s};{15:1s};{16:1s};{17:1s};{18:1s};{19:3d}\n'.format(
         int_config[0],
         int_config[1],
         int_config[2],
@@ -220,9 +309,150 @@ def interfaces_file_output(int_config):
         int_config[15],
         int_config[16],
         int_config[17],
-        int_config[18]
+        int_config[18],
+        int_config[19]
         ))
     f_interfaces.close()
+
+
+
+
+def interfaces_to_file(devices):
+    f_interfaces = open("output\\interfaces.csv", "a")
+
+    for dev in devices:
+        vlans_all = ""
+        ports_used = 0
+        ports_all = 0
+
+        for inter in dev['interfaces']:
+#            vlans_all = vlans_all + int_config[13][i][1] + " " + int_config[13][i][0]
+
+#            if (i < len(int_config[13])-1):
+#                vlans_all = vlans_all + ", "
+
+            # count physical interfaces
+            if regparsers.is_physical_interface(inter['int_type']):
+                ports_all = ports_all + 1
+                if (inter['status'] == 'connected'):
+                    ports_used = ports_used + 1
+
+        str_vlan_db = '"'
+        for key, name in dev['vlans'].items():
+            str_vlan_db = str_vlan_db + '{0} {1}, \n'.format(name, key)
+        if len(str_vlan_db) > 3:
+            str_vlan_db = str_vlan_db[:len(str_vlan_db)-3]
+        str_vlan_db = str_vlan_db + '"'
+
+
+        access_vlans = regparsers.get_access_vlans(dev)
+        str_access_vlans = '"'
+        for key, name in access_vlans.items():
+            str_access_vlans = str_access_vlans + '{0} {1}, \n'.format(name, key)
+        if len(str_access_vlans) > 3:
+            str_access_vlans = str_access_vlans[:len(str_access_vlans)-3]
+        str_access_vlans = str_access_vlans + '"'
+
+        # get dict of specially named vlans with predefined names (802.1x if any)
+        # TODO: change txtfsmparsers.do_vlan_analytics() if your vlan names set is different
+        vlan_analytics_asis = txtfsmparsers.do_vlan_analytics(dev)
+
+        # propose new ordered set of vlans on device
+        native_vlans = regparsers.get_native_vlan_ids(dev['interfaces'])
+        if len(native_vlans) == 1:
+            vlan_analytics_asis['native'] = int(list(native_vlans)[0])
+        elif len(native_vlans) == 0:
+            vlan_analytics_asis['native'] = -1
+        else:
+            vlan_analytics_asis['native'] = int(list(native_vlans)[0])          # TODO: same shit - assertion?
+
+        voice_vlans = regparsers.get_voice_vlan_ids(dev['interfaces'])
+        if len(voice_vlans) == 1:
+            vlan_analytics_asis['voice'] = int(list(voice_vlans)[0])
+        elif len(voice_vlans) == 0:
+            vlan_analytics_asis['voice'] = -1
+        else:
+            vlan_analytics_asis['voice'] = int(list(voice_vlans)[0])          # TODO: same shit - assertion?
+
+        proposed_vlans = proposed_vlans_list(access_vlans)
+
+        str_proposed_vlans = '"'
+        for key, name in proposed_vlans.items():
+            str_proposed_vlans = str_proposed_vlans + '{0} {1}, \n'.format(name, key)
+        if len(str_proposed_vlans) > 3:
+            str_proposed_vlans = str_proposed_vlans[:len(str_proposed_vlans)-3]
+        str_proposed_vlans = str_proposed_vlans + '"'
+
+        f_interfaces.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1d};{5:1d};{6:1d};{7:1d};{8:1d};{9:1d};{10:1d};{11:1d};{12:1d};{13:1s};{14:1s};{15:1s};{16:1s};{17:1s};{18:1s};{19:1s};{20:1s};{21:1s};{22:1s};{23:1s}\n'.format(
+            dev['config_filename'],                                                 # [0] filename
+            dev['hostname'],                                                        # [1] hostname
+            dev['domain_name'],                                                     # [2] domain name
+            '',                                     # TODO: check device type here  # [3] type of switch (asw, dsw, csw, undefined)
+            regparsers.get_number_of_physical_ints(dev['interfaces']),              # [4] number of physical interfaces
+            regparsers.get_number_of_svis(dev['interfaces']),                       # [5] number of SVI interfaces
+            regparsers.get_number_of_ints_with_ip(dev['interfaces']),               # [6] number of interfaces with ip addresses
+            regparsers.get_number_of_connected_l3_ints(dev['interfaces']),          # [7] number of connected L3 interfaces
+            regparsers.get_number_of_acc_int(dev['interfaces']),                    # [8] number of access interfaces
+            regparsers.get_number_of_connected_access_ints(dev['interfaces']),      # [9] number of connected access interfaces
+            regparsers.get_number_of_trunk_int(dev['interfaces']),                  # [10] number of trunk interfaces
+            regparsers.get_number_of_connected_trunk_ints(dev['interfaces']),       # [11] number of connected trunk interfaces
+            regparsers.get_number_of_dot1x_ints(dev['interfaces']),                 # [12] number of access ports with dot1x
+            str_vlan_db,                                                            # [13] all vlan from vlan database
+            str_access_vlans,                                                       # [14] list of access vlan(s)
+            ', '.join(regparsers.get_all_vlan_ids_from_trunk(dev['interfaces'])),   # [15] list of vlan(s) on trunks
+            str_proposed_vlans,                                                     # [16] list of proposed vlans to be in database and on trunk
+            ', '.join(native_vlans),                                                # [17] list of native vlan(s)
+            ', '.join(voice_vlans),                                                 # [18] list of voice vlan(s)
+            vlan_id_to_str(vlan_analytics_asis['users']),                           # [19] vlan id of 'users' vlan
+            vlan_id_to_str(vlan_analytics_asis['iot_toro']),                        # [20] vlan id of 'iot_toro' vlan
+            vlan_id_to_str(vlan_analytics_asis['media_equip']),                     # [21] vlan id of media_equip vlan
+            vlan_id_to_str(vlan_analytics_asis['off_equip']),                       # [22] vlan id of off_equip vlan
+            vlan_id_to_str(vlan_analytics_asis['admin']),                           # [23] vlan id of admin vlan
+        ))
+
+    f_interfaces.close()
+    return True
+
+
+def vlan_id_to_str(id):
+    if id == -1:
+        return ''
+    else:
+        return '{0}'.format(id)
+
+
+def proposed_vlans_list(current_vlans):
+    proposed_vlans = {}
+
+    # current = {id: 'name'}
+
+    # TODO: subject to change !!!!
+    # куст 007596
+    # proposed = {id: 'name'}
+    proposed_vlans[1000] = 'native'
+    proposed_vlans[254] = 'mgmt'
+    proposed_vlans[29] = 'users'
+    proposed_vlans[3983] = 'off_equip'
+    proposed_vlans[9999] = 'media_equip'
+
+    # dictionary of correct vlan names for proposed list
+    nice_dictionary = {150: 'uaz.ent.mgmt.ap_wifi', 8: 'ASUTP_GLZ', 56: 'Pritok', 27: 'ohrana_uaz', 397: 'scada_dop'}
+
+    excluded_keys = [1, 3960, 3986, 13, 3990, -1, 3982]
+
+    for curr_key in list(current_vlans.keys()):
+        if curr_key not in list(proposed_vlans.keys()) and curr_key not in excluded_keys:
+            if current_vlans[curr_key] == '':
+                if curr_key in nice_dictionary.keys():
+                    proposed_vlans[curr_key] = nice_dictionary[curr_key]
+                else:
+                    proposed_vlans[curr_key] = 'not set'
+            else:
+                if curr_key in nice_dictionary.keys():
+                    proposed_vlans[curr_key] = nice_dictionary[curr_key]
+                else:
+                    proposed_vlans[curr_key] = current_vlans[curr_key]
+    return proposed_vlans
 
 
 # Create a function to easily repeat on many lists:
@@ -251,6 +481,9 @@ def split_interface(interface):
 
 
 def normalize_interface_names(non_norm_int):
+    if non_norm_int == 'Drop':
+        return 'Failed'
+
     tmp = split_interface(non_norm_int)
     interface_type = tmp[0]
     port = tmp[1]
@@ -260,12 +493,12 @@ def normalize_interface_names(non_norm_int):
                 if interface_type in name:
                     return_this = int_types[1] + port
                     return return_this
-    return "normalize_interface_names failed"
+    return 'Failed'
 
 
 def check_compliance(num, file, curr_path, config):
-    dev_access = get_access_config(config, curr_path)
-    dev_con_access = get_con_access_config(config, curr_path)
+    dev_access = txtfsmparsers.get_access_config(config, curr_path)
+    dev_con_access = txtfsmparsers.get_con_access_config(config, curr_path)
 
     # ToDo: transform to tuple values?
     compliance_result.append([])
@@ -273,24 +506,24 @@ def check_compliance(num, file, curr_path, config):
     compliance_result[len(compliance_result) - 1] = [
     num,                                # 0
     file,                               # 1
-    obtain_hostname(config),            # 2
-    obtain_mng_ip_from_config(config),  # 3
-    obtain_domain(config),              # 4
-    obtain_model(config),               # 5
-    obtain_serial(config),              # 6
-    " " + obtain_software_version(config),  # 7
-    obtain_timezone(config),            # 8
-    obtain_snmp_version(config),        # 9!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    check_source_route(config),         # 10
-    check_service_password_encryption(config), # 11
-    check_weak_enable_password_encryption(config), # 12
-    check_enable_password_encryption_method(config),  # 13
-    check_ssh_version(config),          # 14
-    check_logging_buffered(config),     # 15
-    check_ssh_timeout(config),          # 16
-    check_boot_network(config),         # 17
-    check_service_config(config),       # 18
-    check_cns_config(config),           # 19
+    regparsers.obtain_hostname(config),            # 2
+    regparsers.obtain_mng_ip_from_config(config),  # 3
+    regparsers.obtain_domain(config),              # 4
+    regparsers.obtain_model(config),               # 5
+    regparsers.obtain_serial(config),              # 6
+    " " + regparsers.obtain_software_version(config),  # 7
+    regparsers.obtain_timezone(config),            # 8
+    regparsers.obtain_snmp_version(config),        # 9!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    regparsers.check_source_route(config),         # 10
+    regparsers.check_service_password_encryption(config), # 11
+    regparsers.check_weak_enable_password_encryption(config), # 12
+    regparsers.check_enable_password_encryption_method(config),  # 13
+    regparsers.check_ssh_version(config),          # 14
+    regparsers.check_logging_buffered(config),     # 15
+    regparsers.check_ssh_timeout(config),          # 16
+    regparsers.check_boot_network(config),         # 17
+    regparsers.check_service_config(config),       # 18
+    regparsers.check_cns_config(config),           # 19
     dev_con_access[0][1],               # 20 con0 exec-time
     dev_con_access[0][2],               # 21 con0 transport preferred
     dev_con_access[0][3],               # 22 con0 trans inp
@@ -305,37 +538,37 @@ def check_compliance(num, file, curr_path, config):
     dev_access[1][2],                   # 31 vty trans pref
     dev_access[1][3],                   # 32 vty trans inp
     dev_access[1][4],                   # 33 vty acc class
-    check_syslog_timestamp(config),     # 34
-    check_proxy_arp(config),            # 35
-    check_logging_console(config),      # 36
-    check_logging_syslog(config),       # 37
-    check_log_failures(config),         # 38
-    check_log_success(config),          # 39
-    check_tcp_keepalives_in(config),    # 40
-    check_tcp_keepalives_out(config),   # 41
-    check_inetd_disable(config),        # 42
-    check_bootp_disable(config),        # 43
-    check_authentication_retries(config),   # 44
-    check_weak_local_users_passwords(config), # 45
-    check_motd_banner(config),          # 46
-    check_accounting_commands(config),  # 47
-    check_connection_accounting(config),    # 48
-    check_exec_commands_accounting(config), #49
-    check_system_accounting(config),        # 50
-    check_new_model(config),            # 51
-    check_auth_login(config),           # 52
-    check_auth_enable(config),          # 53
-    get_ntp_servers(config),            # 54
-    check_bpduguard(config),            # 55
-    check_iparp_inspect(config),        # 56
-    check_dhcp_snooping(config),        # 57
-    get_tacacs_server_ips(config, curr_path),   #58
-    check_aux(config),                  # 59
-    check_portsecurity(config),         # 60
-    check_stormcontrol(config),         # 61
-    obtain_snmp_user_encr(config),      # 62
-    check_snmpv3_authencr(config),      # 63
-    check_snmpv2_ACL(config)            # 64
+    regparsers.check_syslog_timestamp(config),     # 34
+    regparsers.check_proxy_arp(config),            # 35
+    regparsers.check_logging_console(config),      # 36
+    regparsers.check_logging_syslog(config),       # 37
+    regparsers.check_log_failures(config),         # 38
+    regparsers.check_log_success(config),          # 39
+    regparsers.check_tcp_keepalives_in(config),    # 40
+    regparsers.check_tcp_keepalives_out(config),   # 41
+    regparsers.check_inetd_disable(config),        # 42
+    regparsers.check_bootp_disable(config),        # 43
+    regparsers.check_authentication_retries(config),   # 44
+    regparsers.check_weak_local_users_passwords(config), # 45
+    regparsers.check_motd_banner(config),          # 46
+    regparsers.check_accounting_commands(config),  # 47
+    regparsers.check_connection_accounting(config),    # 48
+    regparsers.check_exec_commands_accounting(config), #49
+    regparsers.check_system_accounting(config),        # 50
+    regparsers.check_new_model(config),            # 51
+    regparsers.check_auth_login(config),           # 52
+    regparsers.check_auth_enable(config),          # 53
+    regparsers.get_ntp_servers(config),            # 54
+    regparsers.check_bpduguard(config),            # 55
+    regparsers.check_iparp_inspect(config),        # 56
+    regparsers.check_dhcp_snooping(config),        # 57
+    txtfsmparsers.get_tacacs_server_ips(config, curr_path),   #58
+    regparsers.check_aux(config),                  # 59
+    regparsers.check_portsecurity(config),         # 60
+    regparsers.check_stormcontrol(config),         # 61
+    regparsers.obtain_snmp_user_encr(config),      # 62
+    regparsers.check_snmpv3_authencr(config),      # 63
+    regparsers.check_snmpv2_ACL(config)            # 64
 ]
 
 
@@ -797,14 +1030,14 @@ def write_xls_report(curr_path, ):
 
 
 def find_missed_devices():
-    devices = []
+    devs = []
     cdps = []
     missed_devices = []
-    dname = ""
+    dname = ''
 
     with open("output\\cparser_output.csv") as f_cparser:
         for line in f_cparser.readlines():
-            devices.append(line.split(";"))
+            devs.append(line.split(";"))
 
     with open("output\\all_nei_output.csv") as f_allnei:
         for line in f_allnei.readlines():
@@ -815,17 +1048,17 @@ def find_missed_devices():
         if cdp[0] == "Hostname":
             continue
 
-        for device in devices:
+        for dev in devs:
             if found:
                 break
 
-            if device[0] == "Hostname":
+            if dev[0] == "Hostname":
                 continue
 
-            if device[3] == "Not set":
-                dname = device[1]
+            if dev[4] == "Not set":
+                dname = dev[1]
             else:
-                dname = device[1] + "." + device[3]
+                dname = dev[1] + '.' + dev[4]
 
             if cdp[0] == dname:
                 found = True

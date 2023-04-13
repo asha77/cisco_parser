@@ -1,10 +1,11 @@
 import textfsm
-from regparsers import *
-#from cisco_parser import all_interfaces
+import cisco_parser
+import outintofiles
+import regparsers
 
 
 def get_cdp_neighbours(config, curr_path, file, devinfo):
-    nei_template = open(curr_path + '\\nrt_cdp_nei.template')
+    nei_template = open(curr_path + '\\nrt_cdp_nei_ios.template')
     fsm = textfsm.TextFSM(nei_template)
 
     fsm.Reset()
@@ -26,7 +27,7 @@ def get_cdp_neighbours(config, curr_path, file, devinfo):
         all_neighbours[len(all_neighbours) - 1].append(devinfo[1])  # Source Mng IP
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][4])    # Source port
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][1])    # Dest hostname
-        all_neighbours[len(all_neighbours) - 1].append(strip_cisco_from_cdp_name(neighbours[i][3]))   # Dest Model
+        all_neighbours[len(all_neighbours) - 1].append(regparsers.strip_cisco_from_cdp_name(neighbours[i][3]))   # Dest Model
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][2])    # Dest IP
         all_neighbours[len(all_neighbours) - 1].append(neighbours[i][5])    # Dest portn
 
@@ -37,37 +38,189 @@ def get_cdp_neighbours(config, curr_path, file, devinfo):
     return all_neighbours
 
 
-def get_cdp_neighbours_to_model(devindex, config, curr_path):
-    nei_template = open(curr_path + '\\nrt_cdp_nei.template')
-    fsm = textfsm.TextFSM(nei_template)
-    fsm.Reset()
-    neighbours = fsm.ParseText(config)
-    nei_template.close()
+def get_cdp_neighbours_to_model(empty_device, config, curr_path):
+    # Extracting for Cisco IOS
+    if empty_device['os'] == 'cisco_ios_xe' or empty_device['os'] == 'cisco_ios' or empty_device['os'] == 'cisco_ios_xr':
+        nei_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_cdp_nei_ios.template')
 
-    lastindex = 0
+        fsm = textfsm.TextFSM(nei_template)
+        fsm.Reset()
+        neighbours = fsm.ParseText(config)
+        nei_template.close()
 
-    if devices[devindex]['domain_name'] == "Not set":
-        dev_id = devices[devindex]['hostname']
-    else:
-        dev_id = devices[devindex]['hostname'] + '.' + devices[devindex]['domain_name']
+        lastindex = 0
 
-    for i in range(lastindex, len(neighbours)):
-        cdp_record = {'local_id': dev_id,
-                      'local_model': devices[devindex]['model'],
-                      'local_ip_addr': devices[devindex]['mgmt_ipv4_from_filename'],
-                      'local_interface': neighbours[i][4],
-                      'remote_id': neighbours[i][1],
-                      'remote_model': strip_cisco_from_cdp_name(neighbours[i][3]),
-                      'remote_ip_addr': neighbours[i][2],
-                      'remote_interface': neighbours[i][5]
-                      }
+        if empty_device['domain_name'] == "Not set":
+            dev_id = empty_device['hostname']
+        else:
+            dev_id = empty_device['hostname'] + '.' + empty_device['domain_name']
 
-        devices[0]['cdp_neighbours'].append(cdp_record)
-    return
+        for i in range(lastindex, len(neighbours)):
+
+            if 'N9K' in regparsers.strip_cisco_from_cdp_name(neighbours[i][3]):
+                remote_id = regparsers.strip_serial_from_cdp_name(neighbours[i][1])
+            else:
+                remote_id = neighbours[i][1]
+
+            cdp_record = {'local_id': dev_id,
+                          'local_model': empty_device['model'],
+                          'local_ip_addr': empty_device['mgmt_ipv4_from_filename'],
+                          'local_interface': neighbours[i][4],
+                          'remote_id': remote_id,
+                          'remote_model': regparsers.strip_cisco_from_cdp_name(neighbours[i][3]),
+                          'remote_ip_addr': neighbours[i][2],
+                          'remote_interface': neighbours[i][5]
+                        }
+            empty_device['cdp_neighbours'].append(cdp_record)
+
+    # Extracting for Cisco NX-OS
+    if empty_device['os'] == 'cisco_nx_os':
+        nei_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_cdp_nei_nx_os.template')
+        fsm = textfsm.TextFSM(nei_template)
+        fsm.Reset()
+        neighbours = fsm.ParseText(config)
+        nei_template.close()
+
+        lastindex = 0
+
+        if empty_device['domain_name'] == "Not set":
+            dev_id = empty_device['hostname']
+        else:
+            dev_id = empty_device['hostname'] + '.' + empty_device['domain_name']
+
+        for i in range(lastindex, len(neighbours)):
+            remote_id = regparsers.strip_serial_from_cdp_name(neighbours[i][1])
+
+            if 'N9K' in regparsers.strip_cisco_from_cdp_name(neighbours[i][3]):
+                remote_id = regparsers.strip_serial_from_cdp_name(neighbours[i][0])
+            else:
+                remote_id = neighbours[i][0]
+
+            cdp_record = {'local_id': dev_id,
+                          'local_model': empty_device['model'],
+                          'local_ip_addr': empty_device['mgmt_ipv4_from_filename'],
+                          'local_interface': neighbours[i][5],
+                          'remote_id': remote_id,
+                          'remote_model': regparsers.strip_cisco_from_cdp_name(neighbours[i][3]),
+                          'remote_ip_addr': neighbours[i][2],
+                          'remote_interface': neighbours[i][4]
+                          }
+            empty_device['cdp_neighbours'].append(cdp_record)
+
+    # Extracting for Huawei
+    if empty_device['os'] == 'huawei_vrp':
+        nei_template = open(curr_path + '\\txtfsm_templates\\huawei\\nrt_lldp_nei.template')
+        fsm = textfsm.TextFSM(nei_template)
+        fsm.Reset()
+        neighbours = fsm.ParseText(config)
+        nei_template.close()
+
+        lastindex = 0
+
+        if empty_device['domain_name'] == "Not set":
+            dev_id = empty_device['hostname']
+        else:
+            dev_id = empty_device['hostname'] + '.' + empty_device['domain_name']
+
+        for i in range(lastindex, len(neighbours)):
+            cdp_record = {'local_id': dev_id,
+                          'local_model': empty_device['model'],
+                          'local_ip_addr': empty_device['mgmt_ipv4_from_filename'],
+                          'local_interface': neighbours[i][4],
+                          'remote_id': neighbours[i][1],
+                          'remote_model': regparsers.strip_cisco_from_cdp_name(neighbours[i][3]),
+                          'remote_ip_addr': neighbours[i][2],
+                          'remote_interface': neighbours[i][5]
+                          }
+            empty_device['cdp_neighbours'].append(cdp_record)
+
+    # Extracting for HPE Aruba with WC versions of firmware
+    if empty_device['os'] == 'aruba_aos-s' and empty_device['sw_version'].find('WC') == 0:
+        nei_template = open(curr_path + '\\txtfsm_templates\\aruba\\nrt_lldp_nei_WC.template')
+        fsm = textfsm.TextFSM(nei_template)
+        fsm.Reset()
+        neighbours = fsm.ParseText(config)
+        nei_template.close()
+
+        lastindex = 0
+
+        if empty_device['domain_name'] == "Not set":
+            dev_id = empty_device['hostname']
+        else:
+            dev_id = empty_device['hostname'] + '.' + empty_device['domain_name']
+
+        for i in range(lastindex, len(neighbours)):
+            local_port = neighbours[i][0].strip()
+            remote_chassis_id = neighbours[i][1].strip()
+            remote_port_id = neighbours[i][2].strip()
+            remote_port_desc = neighbours[i][3].strip()
+            remote_chassis_name = neighbours[i][4].strip()
+
+            cdp_record = {'local_id': dev_id,
+                          'local_model': empty_device['model'],
+                          'local_ip_addr': empty_device['mgmt_ipv4_from_filename'],
+                          'local_interface': local_port,
+                          'remote_id': remote_chassis_name,
+                          'remote_model': '',
+                          'remote_ip_addr': '',
+                          'remote_interface': remote_port_id
+                          }
+            empty_device['cdp_neighbours'].append(cdp_record)
+
+    # Extracting for HPE Aruba with YC versions of firmware
+    if empty_device['os'] == 'aruba_aos-s' and (empty_device['sw_version'].find('YA') == 0 or empty_device['sw_version'].find('YB') == 0):
+        nei_template = open(curr_path + '\\txtfsm_templates\\aruba\\nrt_lldp_nei_YA.template')
+        fsm = textfsm.TextFSM(nei_template)
+        fsm.Reset()
+        neighbours = fsm.ParseText(config)
+        nei_template.close()
+
+        lastindex = 0
+
+        if empty_device['domain_name'] == "Not set":
+            dev_id = empty_device['hostname']
+        else:
+            dev_id = empty_device['hostname'] + '.' + empty_device['domain_name']
+
+        for i in range(lastindex, len(neighbours)):
+            local_port = neighbours[i][0].strip()
+
+            if neighbours[i][1] == '':
+                remote_chassis_id = neighbours[i][2].strip()
+            else:
+                remote_chassis_id = neighbours[i][1].strip()
+
+            if neighbours[i][3] =='':
+                if neighbours[i][4] == '':
+                    remote_port_id = neighbours[i][5].strip()
+                else:
+                    remote_port_id = neighbours[i][4].strip()
+            else:
+                remote_port_id = neighbours[i][3].strip()
+
+            if neighbours[i][6] == '':
+                remote_port_desc = neighbours[i][7].strip()
+            else:
+                remote_port_desc = neighbours[i][6].strip()
+
+            remote_chassis_name = neighbours[i][8].strip()
+
+            cdp_record = {'local_id': dev_id,
+                          'local_model': empty_device['model'],
+                          'local_ip_addr': empty_device['mgmt_ipv4_from_filename'],
+                          'local_interface': local_port,
+                          'remote_id': remote_chassis_name,
+                          'remote_model': '',
+                          'remote_ip_addr': '',
+                          'remote_interface': remote_port_id
+                          }
+            empty_device['cdp_neighbours'].append(cdp_record)
+
+    return empty_device
 
 
 def get_vrfs(config, curr_path, file, devinfo):
-    nei_template = open(curr_path + '\\nrt_cdp_nei.template')
+    nei_template = open(curr_path + '\\nrt_cdp_nei_ios.template')
     fsm = textfsm.TextFSM(nei_template)
 
     fsm.Reset()
@@ -94,306 +247,452 @@ def get_vrfs(config, curr_path, file, devinfo):
     return all_neighbours
 
 
-def get_interfaces_config(config, curr_path, file, devinfo):
-#    global all_interfaces
+def get_interfaces_config_to_model(empty_device, config, curr_path):
+    if empty_device['os'] == 'cisco_ios_xe' or empty_device['os'] == 'cisco_ios' or empty_device['os'] == 'cisco_ios_xr':
+        int_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_interfaces_config.template')
+        fsm = textfsm.TextFSM(int_template)
+        fsm.Reset()
+        interfaces_config = fsm.ParseText(config)
+        int_template.close()
 
-    interfaces = []
-    int_template = open(curr_path + '\\nrt_interfaces_config.template')
-    fsm = textfsm.TextFSM(int_template)
-    fsm.Reset()
-    interfaces = fsm.ParseText(config)
-    int_template.close()
+        int_status = get_int_status(config, curr_path)  # TODO: not relevant for routers on IOS!!!
 
-    interfaces_configuration = []
-    lastindex = 0
-    i = 0
-    j = 0
-    vlan_id = 0
+        # 'interface': interf[0]
+        # 'name': interf[1]
+        # 'status': interf[2]
+        # 'vlan': interf[3]
+        # 'duplex': interf[4]
+        # 'speed': interf[5]
+        # 'type': interf[6]
 
-    # interfaces_configuration
-    # [0] - file
-    # [1] - hostname
-    # [2] - type of switch (asw, dsw, csw, undefined)
-    # [3] - number of physical interfaces
-    # [4] - number of SVI interfaces
-    # [5] - number of access interfaces
-    # [6] - number of trunk interfaces
-    # [7] - number of access ports with dot1x
-    # [8] - number of ip addresses
-    # [9] - list of access vlan(s)
-    # [10] - list of native vlan(s)
-    # [11] - list of voice vlan(s)
-    # [12] - list of vlan(s) on trunks
-    # [13] - all vlan from vlan database
-    # [14] - vlan id of users vlan
-    # [15] - vlan id of iot_toro vlan
-    # [16] - vlan id of media_equip vlan
-    # [17] - vlan id of off_equip vlan
-    # [18] - vlan id of admin vlan
-    if devinfo[2] == "Not set":
-        dev_id = devinfo[0]
-    else:
-        dev_id = devinfo[0] + '.' + devinfo[2]
+        if empty_device['domain_name'] == "Not set":
+            dev_id = empty_device['hostname']
+        else:
+            dev_id = empty_device['hostname'] + '.' + empty_device['domain_name']
 
-    interfaces_configuration.append(file)
-    interfaces_configuration.append(dev_id)
-    interfaces_configuration.append(get_type_of_sw_from_hostname(devinfo[0]))
-    interfaces_configuration.append(get_num_of_physical_ints(interfaces))
-    interfaces_configuration.append(get_num_of_svi_ints(interfaces))
-    interfaces_configuration.append(get_num_of_access_int_from_interface_list(interfaces))
-    interfaces_configuration.append(get_num_of_trunk_int_from_interface_list(interfaces))
-    interfaces_configuration.append(get_num_of_dot1x_interfaces(interfaces))
-    interfaces_configuration.append(get_num_of_ints_with_ip(interfaces))
-    interfaces_configuration.append(get_access_vlan_ids(interfaces))
-    interfaces_configuration.append(get_native_vlan_ids(interfaces))
-    interfaces_configuration.append(get_voice_vlan_ids(interfaces))
-    interfaces_configuration.append(get_trunk_vlan_ids(interfaces))
+        if len(int_status) > 0:
+            for intf in interfaces_config:
+                trunk_vlan_ids = ''
+                if intf[8] != '':
+                    trunk_vlan_ids = intf[8]
+                if intf[9] != '':
+                    trunk_vlan_ids = trunk_vlan_ids + ',' + intf[9]
 
-    vlans_from_config = get_vlan_config(config, curr_path)
-    interfaces_configuration.append(vlans_from_config)
+                for i_key in range(0, len(int_status)):
+                    if int_status[i_key]['interface'] == outintofiles.normalize_interface_names(intf[0]):
+                        break
 
-    all_interfaces.append(interfaces)
+                if ((intf[6] == 'access') and (int_status[i_key]['vlan'].isdigit())):
+                    swport_mode = 'access'
+                    access_vlan = int_status[i_key]['vlan']
+                    trunk_vlans = []
+                    if intf[16] == 'nonegotiate':
+                        dtp_mode = 'nonegotiate'
+                    else:
+                        dtp_mode = ''
+                    interface_status = int_status[i_key]['status']
+                elif ((intf[6] == 'trunk') and (int_status[i_key]['vlan'] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = ''
+                    interface_status = int_status[i_key]['status']
+                elif ((intf[6] == 'dynamic auto') and (int_status[i_key]['vlan'] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'auto'
+                    interface_status = int_status[i_key]['status']
+                elif ((intf[6] == 'dynamic desirable') and (int_status[i_key]['vlan'] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'desirable'
+                    interface_status = int_status[i_key]['status']
+                elif ((intf[16] == 'nonegotiate') and (int_status[i_key]['vlan'] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'nonegotiate'
+                    interface_status = int_status[i_key]['status']
+                else:
+                    if 'Vlan' in intf[0]:
+                        # vlan interface!!!
+                        swport_mode = ''     # TODO: check not set = L3 port = no switchport ???
+                        access_vlan = ''
+                        trunk_vlans = ''
+                        dtp_mode = ''
+                        interface_status = 'up'
+                    else:                    #
+                        swport_mode = ''
+                        access_vlan = ''
+                        trunk_vlans = ''
+                        dtp_mode = ''
+                        interface_status = 'up'
 
-    """
-    fill vlan id for vlans with names   
-     - users
-     - iot_toro
-     - media_equip
-     - off_equip
-     - admin
-    """
+                interface = {
+                    'name': intf[0],
+                    'description': intf[1],
+                    'int_type': regparsers.get_interface_type_by_name(intf[0]),  # physical, svi, po, tunnel, loopback, not set
+                    'speed': int_status[i_key]['speed'],
+                    'ipv4': intf[3],
+                    'mgmt': 'no',  # ToDo: add check_management_int() call here
+                    'status': interface_status,
+                    'vrf': intf[2],
+                    'switchport_mode': swport_mode,  # access, trunk
+                    'dtp_mode': dtp_mode,
+                    'access_vlan': access_vlan,
+                    'portfast': intf[20],  # TODO: may be enabled globally
+                    'bpduguard': intf[23],  # TODO: may be enabled globally
+                    'trunk_vlan_ids': trunk_vlans,
+                    'ip_helper': intf[24],
+                    'ip_redirects': intf[14],
+                    'proxy_arp': intf[15],
+                    'native_vlan': intf[10],
+                    'voice_vlan': intf[7],
+                    'channel_group': intf[11],
+                    'channel_group_mode': intf[12],
+                    'mdix': intf[21],
+                    'dot1x_mab': intf[17],
+                    'dot1x_auth_order': intf[13],
+                    'dot1x_auth_prio': intf[18],
+                    'dot1x_auth_port_control': intf[19]
+                }
+                empty_device['interfaces'].append(interface)
+        else:
+            for intf in interfaces_config:
+                trunk_vlan_ids = ''
+                if intf[8] != '':
+                    trunk_vlan_ids = intf[8]
+                if intf[9] != '':
+                    trunk_vlan_ids = trunk_vlan_ids + ',' + intf[9]
 
-    vlan_id = "0"
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'users':
-            vlan_id = vlans_from_config[j][0]
+                if intf[6] == 'access':
+                    swport_mode = 'access'
+                    access_vlan = intf[5]
+                    trunk_vlans = []
+                    if intf[16] == 'nonegotiate':
+                        dtp_mode = 'nonegotiate'
+                    else:
+                        dtp_mode = ''
+                elif intf[6] == 'trunk':
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = ''
+                elif intf[6] == 'dynamic auto':
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'auto'
+                elif intf[6] == 'dynamic desirable':
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'desirable'
+                elif ((intf[16] == 'nonegotiate') and (intf[6] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'nonegotiate'
+                else:
+                    if 'Vlan' in intf[0]:
+                        # vlan interface!!!
+                        swport_mode = ''     # TODO: check not set = L3 port = no switchport ???
+                        access_vlan = ''
+                        trunk_vlans = ''
+                        dtp_mode = ''
+                    else:                    # all other interfaces
+                        swport_mode = ''
+                        access_vlan = ''
+                        trunk_vlans = ''
+                        dtp_mode = ''
 
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
+                interface = {
+                    'name': intf[0],
+                    'description': intf[1],
+                    'int_type': regparsers.get_interface_type_by_name(intf[0]),    # physical, svi, po, tunnel, loopback, not set
+                    'speed': '',                                        # TODO: may be enabled globally
+                    'ipv4': regparsers.ip_mask_to_prefix(intf[3], intf[4]),
+                    'mgmt': 'no',                                       # ToDo: add check_management_int() call here
+                    'status': 'unknown',
+                    'vrf': intf[2],
+                    'switchport_mode': swport_mode,                     # access, trunk
+                    'dtp_mode': dtp_mode,
+                    'access_vlan': access_vlan,
+                    'portfast': intf[20],                               # TODO: may be enabled globally
+                    'bpduguard': intf[23],                              # TODO: may be enabled globally
+                    'trunk_vlan_ids': trunk_vlans,
+                    'ip_helper': intf[24],
+                    'ip_redirects': intf[14],
+                    'proxy_arp': intf[15],
+                    'native_vlan': intf[10],
+                    'voice_vlan': intf[7],
+                    'channel_group': intf[11],
+                    'channel_group_mode': intf[12],
+                    'mdix': intf[21],
+                    'dot1x_mab': intf[17],
+                    'dot1x_auth_order': intf[13],
+                    'dot1x_auth_prio': intf[18],
+                    'dot1x_auth_port_control': intf[19]
+                }
 
-    vlan_id = "0"
+                empty_device['interfaces'].append(interface)
 
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'iot_toro':
-            vlan_id = vlans_from_config[j][0]
+    if empty_device['os'] == 'huawei_vrp':
+        int_template = open(curr_path + '\\txtfsm_templates\\huawei\\nrt_interfaces_config.template')
+        fsm = textfsm.TextFSM(int_template)
+        fsm.Reset()
+        interfaces_config = fsm.ParseText(config)
+        int_template.close()
 
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
+        int_status = get_int_status(config, curr_path)  # TODO: not relevant for routers on IOS!!!
 
-    vlan_id = "0"
+        # 'interface': interf[0]
+        # 'name': interf[1]
+        # 'status': interf[2]
+        # 'vlan': interf[3]
+        # 'duplex': interf[4]
+        # 'speed': interf[5]
+        # 'type': interf[6]
 
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'media_equip':
-            vlan_id = vlans_from_config[j][0]
+        if empty_device['domain_name'] == "Not set":
+            dev_id = empty_device['hostname']
+        else:
+            dev_id = empty_device['hostname'] + '.' + empty_device['domain_name']
 
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
+        if len(int_status) > 0:
+            for intf in interfaces_config:
+                trunk_vlan_ids = ''
+                if intf[8] != '':
+                    trunk_vlan_ids = intf[8]
+                if intf[9] != '':
+                    trunk_vlan_ids = trunk_vlan_ids + ',' + intf[9]
 
-    vlan_id = "0"
+                for i_key in range(0, len(int_status)):
+                    if int_status[i_key]['interface'] == outintofiles.normalize_interface_names(intf[0]):
+                        break
 
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'off_equip':
-            vlan_id = vlans_from_config[j][0]
+                if ((intf[6] == 'access') and (int_status[i_key]['vlan'].isdigit())):
+                    swport_mode = 'access'
+                    access_vlan = int_status[i_key]['vlan']
+                    trunk_vlans = []
+                    if intf[16] == 'nonegotiate':
+                        dtp_mode = 'nonegotiate'
+                    else:
+                        dtp_mode = ''
+                elif ((intf[6] == 'trunk') and (int_status[i_key]['vlan'] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = ''
+                elif ((intf[6] == 'dynamic auto') and (int_status[i_key]['vlan'] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'auto'
+                elif ((intf[6] == 'dynamic desirable') and (int_status[i_key]['vlan'] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'desirable'
+                elif ((intf[16] == 'nonegotiate') and (int_status[i_key]['vlan'] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'nonegotiate'
+                else:
+                    swport_mode = 'not set'     # TODO: check not set = L3 port = no switchport ???
+                    access_vlan = int_status[i_key]['vlan']
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = ''
 
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
+                interface = {
+                    'name': intf[0],
+                    'description': intf[1],
+                    'int_type': regparsers.get_interface_type_by_name(intf[0]),  # physical, svi, po, tunnel, loopback, not set
+                    'speed': int_status[i_key]['speed'],
+                    'ipv4': intf[3],
+                    'mgmt': 'no',  # ToDo: add check_management_int() call here
+                    'status': int_status[i_key]['status'],
+                    'vrf': intf[2],
+                    'switchport_mode': swport_mode,  # access, trunk
+                    'dtp_mode': dtp_mode,
+                    'access_vlan': access_vlan,
+                    'portfast': intf[20],  # TODO: may be enabled globally
+                    'bpduguard': intf[23],  # TODO: may be enabled globally
+                    'trunk_vlan_ids': trunk_vlans,
+                    'ip_helper': intf[24],
+                    'ip_redirects': intf[14],
+                    'proxy_arp': intf[15],
+                    'native_vlan': intf[10],
+                    'voice_vlan': intf[7],
+                    'channel_group': intf[11],
+                    'channel_group_mode': intf[12],
+                    'mdix': intf[21],
+                    'dot1x_mab': intf[17],
+                    'dot1x_auth_order': intf[13],
+                    'dot1x_auth_prio': intf[18],
+                    'dot1x_auth_port_control': intf[19]
+                }
+                empty_device['interfaces'].append(interface)
+        else:
+            for intf in interfaces_config:
+                trunk_vlan_ids = ''
+                if intf[8] != '':
+                    trunk_vlan_ids = intf[8]
+                if intf[9] != '':
+                    trunk_vlan_ids = trunk_vlan_ids + ',' + intf[9]
 
-    vlan_id = "0"
+                if intf[6] == 'access':
+                    swport_mode = 'access'
+                    access_vlan = intf[5]
+                    trunk_vlans = []
+                    if intf[16] == 'nonegotiate':
+                        dtp_mode = 'nonegotiate'
+                    else:
+                        dtp_mode = ''
+                elif intf[6] == 'trunk':
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = ''
+                elif intf[6] == 'dynamic auto':
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'auto'
+                elif intf[6] == 'dynamic desirable':
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'desirable'
+                elif ((intf[16] == 'nonegotiate') and (intf[6] == 'trunk')):
+                    swport_mode = 'trunk'
+                    access_vlan = ''
+                    trunk_vlans = regparsers.get_vlan_ids_on_trunk(trunk_vlan_ids)
+                    dtp_mode = 'nonegotiate'
+                else:
+                    swport_mode = 'not set'
+                    access_vlan = ''
+                    trunk_vlans = ''
+                    dtp_mode = ''
 
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'admin':
-            vlan_id = vlans_from_config[j][0]
+                interface = {
+                    'name': intf[0],
+                    'description': intf[1],
+                    'int_type': regparsers.get_interface_type_by_name(intf[0]),    # physical, svi, po, tunnel, loopback, not set
+                    'speed': '',                                        # TODO: may be enabled globally
+                    'ipv4': regparsers.ip_mask_to_prefix(intf[3], intf[4]),
+                    'mgmt': 'no',                                       # ToDo: add check_management_int() call here
+                    'status': 'unknown',
+                    'vrf': intf[2],
+                    'switchport_mode': swport_mode,                     # access, trunk
+                    'dtp_mode': dtp_mode,
+                    'access_vlan': access_vlan,
+                    'portfast': intf[20],                               # TODO: may be enabled globally
+                    'bpduguard': intf[23],                              # TODO: may be enabled globally
+                    'trunk_vlan_ids': trunk_vlans,
+                    'ip_helper': intf[24],
+                    'ip_redirects': intf[14],
+                    'proxy_arp': intf[15],
+                    'native_vlan': intf[10],
+                    'voice_vlan': intf[7],
+                    'channel_group': intf[11],
+                    'channel_group_mode': intf[12],
+                    'mdix': intf[21],
+                    'dot1x_mab': intf[17],
+                    'dot1x_auth_order': intf[13],
+                    'dot1x_auth_prio': intf[18],
+                    'dot1x_auth_port_control': intf[19]
+                }
+                empty_device['interfaces'].append(interface)
 
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
-
-    return interfaces_configuration
-
-
-def get_interfaces_config_to_model(devindex, config, curr_path):
-#    global all_interfaces
-    interfaces = []
-    int_template = open(curr_path + '\\nrt_interfaces_config.template')
-    fsm = textfsm.TextFSM(int_template)
-    fsm.Reset()
-    interfaces = fsm.ParseText(config)
-    int_template.close()
-
-    interfaces_configuration = []
-    lastindex = 0
-    i = 0
-    j = 0
-    vlan_id = 0
-
-    # interfaces_configuration
-    # [0] - file
-    # [1] - hostname
-    # [2] - type of switch (asw, dsw, csw, undefined)
-    # [3] - number of physical interfaces
-    # [4] - number of SVI interfaces
-    # [5] - number of access interfaces
-    # [6] - number of trunk interfaces
-    # [7] - number of access ports with dot1x
-    # [8] - number of ip addresses
-    # [9] - list of access vlan(s)
-    # [10] - list of native vlan(s)
-    # [11] - list of voice vlan(s)
-    # [12] - list of vlan(s) on trunks
-    # [13] - all vlan from vlan database
-    # [14] - vlan id of users vlan
-    # [15] - vlan id of iot_toro vlan
-    # [16] - vlan id of media_equip vlan
-    # [17] - vlan id of off_equip vlan
-    # [18] - vlan id of admin vlan
-
-
-    if devices[devindex]['domain_name'] == "Not set":
-        dev_id = devices[devindex]['hostname']
-    else:
-        dev_id = devices[devindex]['hostname'] + '.' + devices[devindex]['domain_name']
-
-    interfaces_status = get_int_status(config)
-
-    check_management_int()
-
-    interfaces_status
-
-    for interf in interfaces:
-        interface = {
-            'name': interf[0],
-            'description': interf[1],
-            'ipv4': interf[2],
-            'mgmt': "no",
-            'status': 'active',
-            'vrf': 'GRT',
-            'type': 'access',  # access, trunk, svi, po, l3, tunnel, loopback, not set
-            'access_vlan': '100',
-            'portfast': 'yes',
-            'bpduguard': 'yes',
-            'trunk_vlan_id': ['10', '20'],
-            'trunk_vlans': '100',
-            'ip_helper': ['10.76.131.19', '10.76.131.20'],
-            'ip_redirects': 'no',
-            'proxy_arp': 'no',
-            'native_vlan': '2',
-            'channel_group': '2',
-            'channel_group_mode': 'active',
-            'sw_negotiate': 'no',
-            'mdix': 'auto',
-            'dot1x_mab': 'no',
-            'dot1x_auth_order': 'mab dot1x',
-            'dot1x_auth_prio': 'dot1x mab',
-            'dot1x_auth_port_control': 'auto'
-        }
-
-
-
-    interfaces_configuration.append(file)
-    interfaces_configuration.append(dev_id)
-    interfaces_configuration.append(get_type_of_sw_from_hostname(devinfo[0]))
-    interfaces_configuration.append(get_num_of_physical_ints(interfaces))
-    interfaces_configuration.append(get_num_of_svi_ints(interfaces))
-    interfaces_configuration.append(get_num_of_access_int_from_interface_list(interfaces))
-    interfaces_configuration.append(get_num_of_trunk_int_from_interface_list(interfaces))
-    interfaces_configuration.append(get_num_of_dot1x_interfaces(interfaces))
-    interfaces_configuration.append(get_num_of_ints_with_ip(interfaces))
-    interfaces_configuration.append(get_access_vlan_ids(interfaces))
-    interfaces_configuration.append(get_native_vlan_ids(interfaces))
-    interfaces_configuration.append(get_voice_vlan_ids(interfaces))
-    interfaces_configuration.append(get_trunk_vlan_ids(interfaces))
-
-    vlans_from_config = get_vlan_config(config, curr_path)
-    interfaces_configuration.append(vlans_from_config)
-
-    all_interfaces.append(interfaces)
-
-    """
-    fill vlan id for vlans with names   
-     - users
-     - iot_toro
-     - media_equip
-     - off_equip
-     - admin
-    """
-
-    vlan_id = "0"
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'users':
-            vlan_id = vlans_from_config[j][0]
-
-    if vlan_id !="0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
-
-    vlan_id = "0"
-
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'iot_toro':
-            vlan_id = vlans_from_config[j][0]
-
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
-
-    vlan_id = "0"
-
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'media_equip':
-            vlan_id = vlans_from_config[j][0]
-
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
-
-    vlan_id = "0"
-
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'off_equip':
-            vlan_id = vlans_from_config[j][0]
-
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
-
-    vlan_id = "0"
-
-    for j in range(0, len(vlans_from_config)):
-        if vlans_from_config[j][1] == 'admin':
-            vlan_id = vlans_from_config[j][0]
-
-    if vlan_id != "0":
-        interfaces_configuration.append(vlan_id)
-    else:
-        interfaces_configuration.append("")
-
-    return interfaces_configuration
+    return empty_device
 
 
-
-
-
-
-def get_vlan_config(config, curr_path):
+def get_vlans_configuration_to_model(empty_device, config, curr_path):
     # Extract vlan information (id, name) from configuration
+    # {'id': '10', 'name': 'users'}
 
-    vlan_template = open(curr_path + '\\nrt_vlans_config.template')
+    vlan_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_vlans_config.template')
     fsm = textfsm.TextFSM(vlan_template)
     fsm.Reset()
     vlans = fsm.ParseText(config)
+    vlan_template.close()
+
+    vlans_configuration = {}
+
+    i: int = 0
+    j: int = 0
+    w: int = 0
+
+    for i in range(0, len(vlans)):
+        if vlans[i][0] != "internal":
+            if vlans[i][0].find(',') != -1:
+                vlans_list =vlans[i][0].split(',')
+                for j in range(0, len(vlans_list)):
+                    if vlans_list[j].find('-') != -1:
+                        inner_list = vlans_list[j].split('-')
+                        for k in range(int(inner_list[0]), int(inner_list[1])+1):
+                            vlans_configuration[k] = ''
+                    else:
+                        vlans_configuration[int(vlans_list[j])] = ''
+            elif vlans[i][0].find('-') != -1:
+                vlans_list = vlans[i][0].split('-')
+                for j in range(int(vlans_list[0]), int(vlans_list[1])+1):
+                    vlans_configuration[j] = ''
+            else:
+                vlans_configuration[int(vlans[i][0])] = vlans[i][1]
+
+    empty_device['vlans'] = vlans_configuration
+    return empty_device
+
+
+def get_vlan_id_by_name(vlans, id):
+    for vlan in vlans:
+        if vlan == id:
+            return vlans[vlan]
+    return ''
+
+
+def do_vlan_analytics(empty_device):
+    """
+    fill vlan id for vlans with special names (mentioned in 802.1x policies)
+     - users
+     - iot_toro
+     - media_equip
+     - off_equip
+     - admin
+    """
+    vlan_analytics = {}
+    vlan_analytics['users'] = get_vlanid_by_name(empty_device['vlans'], 'users')
+    vlan_analytics['iot_toro'] = get_vlanid_by_name(empty_device['vlans'], 'iot_toro')
+    vlan_analytics['media_equip'] = get_vlanid_by_name(empty_device['vlans'], 'media_equip')
+    vlan_analytics['off_equip'] = get_vlanid_by_name(empty_device['vlans'], 'off_equip')
+    vlan_analytics['admin'] = get_vlanid_by_name(empty_device['vlans'], 'admin')
+    return vlan_analytics
+
+
+def get_vlanid_by_name(vlans, vlan):
+    keys = list(vlans.keys())
+    vals = list(vlans.values())
+    try:
+        ind = vals.index(vlan)
+        return keys[ind]
+    except ValueError:
+        return -1
+
+
+def get_vlans_from_config(config, curr_path):
+    # Extract vlan information (id, name) from configuration
+    # {'id': '10', 'name': 'default'}
+
+    vlan_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_vlans_config.template')
+    fsm = textfsm.TextFSM(vlan_template)
+    fsm.Reset()
+    vlans = fsm.ParseText(config)
+    vlan_template.close()
 
     vlans_configuration = []
 
@@ -406,16 +705,18 @@ def get_vlan_config(config, curr_path):
             if vlans[i][0].find(',') != -1:
                 vlans_list =vlans[i][0].split(',')
                 for j in range(0, len(vlans_list)):
-                    vlans_configuration.append([])
-                    vlans_configuration[w].append(vlans_list[j])
-                    vlans_configuration[w].append("")
-                    w = w +1
+                    vlan_instance = {
+                        'id': vlans_list[j],
+                        'name': ''
+                    }
+                    vlans_configuration.append(vlan_instance)
             else:
-                vlans_configuration.append([])
-                vlans_configuration[w].append(vlans[i][0])
-                vlans_configuration[w].append(vlans[i][1])
-                w = w + 1
-    vlan_template.close()
+                vlan_instance = {
+                    'id': vlans[i][0],
+                    'name': vlans[i][1]
+                }
+                vlans_configuration.append(vlan_instance)
+
     return vlans_configuration
 
 
@@ -534,8 +835,8 @@ def get_tacacs_server_ips(config, curr_path):
     Get tacacs server IPs
     '''
 
-    if ("N9K" in obtain_model(config)):
-        match = re.findall('^tacacs-server\shost\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, re.MULTILINE)
+    if ("N9K" in regparsers.obtain_model(config)):
+        match = regparsers.re.findall('^tacacs-server\shost\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, regparsers.re.MULTILINE)
         if match:
             s = ""
             for i in range(len(match)):
@@ -557,7 +858,7 @@ def get_tacacs_server_ips(config, curr_path):
                 s = s + " "+ips[i][1]+","
             return s[:-1]
         else:
-            match = re.findall('^tacacs-server\shost\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, re.MULTILINE)
+            match = regparsers.re.findall('^tacacs-server\shost\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, regparsers.re.MULTILINE)
             if match:
                 s = ""
                 for i in range(len(match)):
@@ -567,9 +868,9 @@ def get_tacacs_server_ips(config, curr_path):
                 return "Fail"
 
 
-def get_int_status(config):
-    # Extract vty device access parameters
-    int_stat_template = open(curr_path + '\\nrt_interface_status.template')
+def get_int_status(config, curr_path):
+    # Extract interface status from 'show interface status' command output
+    int_stat_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_interface_status.template')
     fsm = textfsm.TextFSM(int_stat_template)
     fsm.Reset()
     int_stat = fsm.ParseText(config)

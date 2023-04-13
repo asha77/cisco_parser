@@ -1,0 +1,53 @@
+Value Required INTERFACE (\S+)
+Value DESCRIPTION (.+?)
+Value VRF_NAME (.+?)
+Value IP_ADDRESS (\d+\.\d+\.\d+\.\d+)
+Value NETMASK ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)
+Value ACCESS_VLAN_ID (\d+)
+Value PORT_MODE (access|trunk)
+Value VOICE_VLAN_ID (\d+)
+Value TRUNK_VLAN_ID (\S+)
+Value ADD_TRUNK_VLAN_ID (\S+)
+Value NATIVE_VLAN_ID (\d+)
+Value CHANNEL_GROUP (\d+)
+Value PO_MODE (\S+)
+Value AUTH_MODE (\S+\s\S+)
+Value IP_REDIR (\S*)
+Value IP_PROXYARP (\S*)
+Value NO_NEGOTIATE (nonegotiate)
+Value MAB (mab)
+Value AUTH_PRIO (\S+\s\S+)
+Value AUTH_PORT_CONTROL (\S+)
+Value PORTFAST (portfast)
+Value MDIX (no|)
+Value BPDUFILTER (\S+)
+Value BPDUGUARD (\S+)
+Value IP_HELPER_ADDRESS (\d+\.\d+\.\d+\.\d+)
+
+Start
+  ^interface\s+${INTERFACE}
+  ^\s+description\s+${DESCRIPTION}$$
+  ^\s+vrf\s+forwarding\s+${VRF_NAME}$$
+  ^\s+ip\s+address\s+${IP_ADDRESS}\s+${NETMASK}$$
+  ^\s+ip\shelper-address\s${IP_HELPER_ADDRESS}$$
+  ^\s+switchport\s+mode\s+${PORT_MODE}$$
+  ^\s+switchport\s+${PORT_MODE}\s+vlan\s+${ACCESS_VLAN_ID}$$
+  ^\s+switchport\s+voice\s+vlan\s+${VOICE_VLAN_ID}$$
+  ^\s+switchport\s+trunk\s+allowed\s+vlan\s+${TRUNK_VLAN_ID}$$
+  ^\s+switchport\s+trunk\s+allowed\s+vlan\s+add\s+${ADD_TRUNK_VLAN_ID}$$
+  ^\s+switchport\s+trunk\s+native\s+vlan\s+${NATIVE_VLAN_ID}$$
+  ^\s+switchport\s+${NO_NEGOTIATE}$$
+  ^\s+spanning-tree\s+${PORTFAST}\s+\S+$$
+  ^\s+channel-group\s+${CHANNEL_GROUP}$$ -> Continue.Record
+  ^\s+channel-group\s+${CHANNEL_GROUP}\s+mode\s+${PO_MODE}$$
+  ^\s+authentication\s+order\s+${AUTH_MODE}$$
+  ^\s+${IP_REDIR}\s+ip\s+redirects$$
+  ^\s+${IP_PROXYARP}\s+ip\s+proxy-arp
+  ^\s+authentication\s+priority\s+${AUTH_PRIO}$$
+  ^\s+authentication\s+port-control\s+${AUTH_PORT_CONTROL}$$
+  ^\s+${MAB}$$
+  ^\s+${MDIX}\s+mdix auto$$
+  ^\s+spanning-tree\s+bpdufilter\s+${BPDUFILTER}$$
+  ^\s+spanning-tree\s+bpduguard\s+${BPDUGUARD}$$
+  ^!$$ -> Record
+#  ^. -> Error
