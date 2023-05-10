@@ -47,6 +47,8 @@ def main():
         if namespace.disablefilecheck is False:
             if not check_duplicates.check_config_duplicates(list_of_files):
                 quit()
+        else:
+            print('!!!  ---- Unique files check is disabled ---- !!!')
 
         # Start processing of configs
         with alive_bar(len(list_of_files), length=55, title='Progress', force_tty=True) as bar:

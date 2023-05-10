@@ -122,25 +122,6 @@ def all_neighbours_to_file(devices):
 
 
 
-def neighbours_file_output(all_neighbours):
-    cdp_neighbours = open("output\\cdp_nei_output.csv", "a")
-#    cdp_neighbours.write("ConfigFile;Source hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
-#   ConfigFile	Source hostname	Source Model	Source Mng IP	Source port	Dest hostname	Dest Model	Dest IP	Dest portn
-    for i in range(len(all_neighbours)):
-        cdp_neighbours.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1s} \n'.format(
-            all_neighbours[i][0],
-            all_neighbours[i][1],
-            all_neighbours[i][2],
-            all_neighbours[i][3],
-            all_neighbours[i][4],
-            all_neighbours[i][5],
-            all_neighbours[i][6],
-            all_neighbours[i][7],
-            all_neighbours[i][8]
-        ))
-    cdp_neighbours.close()
-
-
 def connectivity_to_file(devices):
     cdp_neighbours = open("output\\cdp_nei_output.csv", "a")
 #    cdp_neighbours.write("ConfigFile;Source hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
@@ -185,43 +166,6 @@ def many_macs_file_output(config, curr_path, neighbours, devinfo):
     many_macs.close()
 
 
-def ports_file_output(file, curr_path, config):
-    port_template = open(curr_path + '\\nrt_interfaces.template')
-    port_fsm = txtfsmparsers.textfsm.TextFSM(port_template)
-
-    resfile = open("output\cparser_output.csv", "a")
-#    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
-
-    #  проверяем сколько портов активно на коммутаторе
-    port_fsm.Reset()
-    ports = port_fsm.ParseText(config)
-
-    ports_used = 0
-    ports_all = len(ports) - 1
-# ToDo: сортировать по именам при выводе в файл!!!
-# ToDo: подумать над сравнением двух выводов inventory!!!
-
-    for i in range(0, len(ports) - 1):
-        if (ports[i][2] == 'connected'):
-            ports_used = ports_used + 1
-
-            # вывод в файл информации по устройстваи и утилизированным портам
-    resfile.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1d};{9:1d} \n'.format(
-        file,
-        regparsers.obtain_hostname(config),
-        regparsers.obtain_mng_ip_from_filename(file),
-        regparsers.obtain_mng_ip_from_config(config),
-        regparsers.obtain_domain(config),
-        regparsers.obtain_model(config),
-        regparsers.obtain_serial(config),
-        " " + regparsers.obtain_software_version(config),
-        ports_all,
-        ports_used))
-    port_template.close()
-    resfile.close()
-
-
-
 def summary_file_output(devices):
     resfile = open("output\cparser_output.csv", "a")
 #    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
@@ -257,63 +201,6 @@ def summary_file_output(devices):
     resfile.close()
 
     return True
-
-
-def interfaces_file_output(int_config):
-    # interfaces_configuration
-    # [0] - file
-    # [1] - hostname
-    # [2] - type of switch (asw, dsw, csw, undefined)
-    # [3] - number of physical interfaces
-    # [4] - number of SVI interfaces
-    # [5] - number of access interfaces
-    # [6] - number of trunk interfaces
-    # [7] - number of access ports with dot1x
-    # [8] - number of ip addresses
-    # [9] - list of access vlan(s)
-    # [10] - list of native vlan(s)
-    # [11] - list of voice vlan(s)
-    # [12] - list of vlan(s) on trunks
-    # [13] - all vlan from vlan database
-    # [14] - vlan id of users vlan
-    # [15] - vlan id of iot_toro vlan
-    # [16] - vlan id of media_equip vlan
-    # [17] - vlan id of off_equip vlan
-    # [18] - vlan id of admin vlan
-
-    f_interfaces = open("output\\interfaces.csv", "a")
-
-    vlans_all = ""
-
-    for i in range(len(int_config[13])):
-        vlans_all = vlans_all + int_config[13][i][1] + " " + int_config[13][i][0]
-        if (i < len(int_config[13])-1):
-            vlans_all = vlans_all + ", "
-
-    f_interfaces.write('{0:1s};{1:1s};{2:1s};{3:4d};{4:4d};{5:4d};{6:4d};{7:4d};{8:4d};{9:1s};{10:1s};{11:1s};{12:1s};{13:1s};{14:1s};{15:1s};{16:1s};{17:1s};{18:1s};{19:3d}\n'.format(
-        int_config[0],
-        int_config[1],
-        int_config[2],
-        int_config[3],
-        int_config[4],
-        int_config[5],
-        int_config[6],
-        int_config[7],
-        int_config[8],
-        ', '.join(int_config[9]),
-        ', '.join(int_config[10]),
-        ', '.join(int_config[11]),
-        ', '.join(int_config[12]),
-        vlans_all,
-        int_config[14],
-        int_config[15],
-        int_config[16],
-        int_config[17],
-        int_config[18],
-        int_config[19]
-        ))
-    f_interfaces.close()
-
 
 
 

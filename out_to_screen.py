@@ -117,8 +117,8 @@ def print_devices_summary(devices):
         dev['serial'],
         dev['os'],
         dev['sw_version'])
-    )
-
+        )
+        i = i + 1
     # завершаем таблицу
     tbl_footer_out2scr()
     return True
