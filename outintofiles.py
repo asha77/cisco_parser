@@ -965,3 +965,4 @@ def missed_devices_file_output(missed_devices):
             missed_devices[i][2],
         ))
     f_missed.close()
+
