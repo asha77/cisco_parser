@@ -1,47 +1,14 @@
+import os.path
 import textfsm
 import cisco_parser
 import outintofiles
 import regparsers
 
 
-def get_cdp_neighbours(config, curr_path, file, devinfo):
-    nei_template = open(curr_path + '\\nrt_cdp_nei_ios.template')
-    fsm = textfsm.TextFSM(nei_template)
-
-    fsm.Reset()
-    neighbours = fsm.ParseText(config)
-    all_neighbours = []
-    lastindex = 0
-    i = 0
-
-    if devinfo[2] == "Not set":
-        dev_id = devinfo[0]
-    else:
-        dev_id = devinfo[0] + '.' + devinfo[2]
-
-    for i in range(lastindex, len(neighbours)):
-        all_neighbours.append([])
-        all_neighbours[len(all_neighbours) - 1].append(file)        # ConfigFile
-        all_neighbours[len(all_neighbours) - 1].append(dev_id)      # Source hostname
-        all_neighbours[len(all_neighbours) - 1].append(devinfo[3])  # Source Model
-        all_neighbours[len(all_neighbours) - 1].append(devinfo[1])  # Source Mng IP
-        all_neighbours[len(all_neighbours) - 1].append(neighbours[i][4])    # Source port
-        all_neighbours[len(all_neighbours) - 1].append(neighbours[i][1])    # Dest hostname
-        all_neighbours[len(all_neighbours) - 1].append(regparsers.strip_cisco_from_cdp_name(neighbours[i][3]))   # Dest Model
-        all_neighbours[len(all_neighbours) - 1].append(neighbours[i][2])    # Dest IP
-        all_neighbours[len(all_neighbours) - 1].append(neighbours[i][5])    # Dest portn
-
-    if i != 0:
-        lastindex = i + 1
-
-    nei_template.close()
-    return all_neighbours
-
-
 def get_cdp_neighbours_to_model(empty_device, config, curr_path):
     # Extracting for Cisco IOS
     if empty_device['os'] == 'cisco_ios_xe' or empty_device['os'] == 'cisco_ios' or empty_device['os'] == 'cisco_ios_xr':
-        nei_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_cdp_nei_ios.template')
+        nei_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cdp_nei_ios.template"))
 
         fsm = textfsm.TextFSM(nei_template)
         fsm.Reset()
@@ -75,7 +42,7 @@ def get_cdp_neighbours_to_model(empty_device, config, curr_path):
 
     # Extracting for Cisco NX-OS
     if empty_device['os'] == 'cisco_nx_os':
-        nei_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_cdp_nei_nx_os.template')
+        nei_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cdp_nei_nx_os.template"))
         fsm = textfsm.TextFSM(nei_template)
         fsm.Reset()
         neighbours = fsm.ParseText(config)
@@ -109,7 +76,7 @@ def get_cdp_neighbours_to_model(empty_device, config, curr_path):
 
     # Extracting for Huawei
     if empty_device['os'] == 'huawei_vrp':
-        nei_template = open(curr_path + '\\txtfsm_templates\\huawei\\nrt_lldp_nei.template')
+        nei_template = open(os.path.join(curr_path, 'txtfsm_templates', "huawei", "nrt_lldp_nei.template"))
         fsm = textfsm.TextFSM(nei_template)
         fsm.Reset()
         neighbours = fsm.ParseText(config)
@@ -136,7 +103,7 @@ def get_cdp_neighbours_to_model(empty_device, config, curr_path):
 
     # Extracting for HPE Aruba with WC versions of firmware
     if empty_device['os'] == 'aruba_aos-s' and empty_device['sw_version'].find('WC') == 0:
-        nei_template = open(curr_path + '\\txtfsm_templates\\aruba\\nrt_lldp_nei_WC.template')
+        nei_template = open(os.path.join(curr_path, "txtfsm_templates", "aruba", "nrt_lldp_nei_WC.template"))
         fsm = textfsm.TextFSM(nei_template)
         fsm.Reset()
         neighbours = fsm.ParseText(config)
@@ -169,7 +136,7 @@ def get_cdp_neighbours_to_model(empty_device, config, curr_path):
 
     # Extracting for HPE Aruba with YC versions of firmware
     if empty_device['os'] == 'aruba_aos-s' and (empty_device['sw_version'].find('YA') == 0 or empty_device['sw_version'].find('YB') == 0):
-        nei_template = open(curr_path + '\\txtfsm_templates\\aruba\\nrt_lldp_nei_YA.template')
+        nei_template = open(os.path.join(curr_path, "txtfsm_templates", "aruba", "nrt_lldp_nei_YA.template"))
         fsm = textfsm.TextFSM(nei_template)
         fsm.Reset()
         neighbours = fsm.ParseText(config)
@@ -220,7 +187,7 @@ def get_cdp_neighbours_to_model(empty_device, config, curr_path):
 
 
 def get_vrfs(config, curr_path, file, devinfo):
-    nei_template = open(curr_path + '\\nrt_cdp_nei_ios.template')
+    nei_template = open(os.path.join(curr_path, 'nrt_cdp_nei_ios.template'))
     fsm = textfsm.TextFSM(nei_template)
 
     fsm.Reset()
@@ -249,7 +216,7 @@ def get_vrfs(config, curr_path, file, devinfo):
 
 def get_interfaces_config_to_model(empty_device, config, curr_path):
     if empty_device['os'] == 'cisco_ios_xe' or empty_device['os'] == 'cisco_ios' or empty_device['os'] == 'cisco_ios_xr':
-        int_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_interfaces_config.template')
+        int_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_interfaces_config.template"))
         fsm = textfsm.TextFSM(int_template)
         fsm.Reset()
         interfaces_config = fsm.ParseText(config)
@@ -440,7 +407,7 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
                 empty_device['interfaces'].append(interface)
 
     if empty_device['os'] == 'huawei_vrp':
-        int_template = open(curr_path + '\\txtfsm_templates\\huawei\\nrt_interfaces_config.template')
+        int_template = open(os.path.join(curr_path, "txtfsm_templates", "huawei", "nrt_interfaces_config.template"))
         fsm = textfsm.TextFSM(int_template)
         fsm.Reset()
         interfaces_config = fsm.ParseText(config)
@@ -615,7 +582,7 @@ def get_vlans_configuration_to_model(empty_device, config, curr_path):
     # Extract vlan information (id, name) from configuration
     # {'id': '10', 'name': 'users'}
 
-    vlan_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_vlans_config.template')
+    vlan_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_vlans_config.template"))
     fsm = textfsm.TextFSM(vlan_template)
     fsm.Reset()
     vlans = fsm.ParseText(config)
@@ -688,7 +655,7 @@ def get_vlans_from_config(config, curr_path):
     # Extract vlan information (id, name) from configuration
     # {'id': '10', 'name': 'default'}
 
-    vlan_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_vlans_config.template')
+    vlan_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_vlans_config.template"))
     fsm = textfsm.TextFSM(vlan_template)
     fsm.Reset()
     vlans = fsm.ParseText(config)
@@ -722,7 +689,7 @@ def get_vlans_from_config(config, curr_path):
 
 def get_access_config(config, curr_path):
     # Extract vty device access parameters
-    access_template = open(curr_path + '\\nrt_dev_access.template')
+    access_template = open(os.path.join(curr_path, "nrt_dev_access.template"))
     fsm = textfsm.TextFSM(access_template)
     fsm.Reset()
     access = fsm.ParseText(config)
@@ -792,7 +759,7 @@ def get_access_config(config, curr_path):
 
 def get_con_access_config(config, curr_path):
     # Extract console device access parameters
-    access_template = open(curr_path + '\\nrt_dev_con_access.template')
+    access_template = open(os.path.join(curr_path, "nrt_dev_con_access.template"))
     fsm = textfsm.TextFSM(access_template)
     fsm.Reset()
     access = fsm.ParseText(config)
@@ -846,7 +813,7 @@ def get_tacacs_server_ips(config, curr_path):
             return "Fail"
     else:
         # Extract vlan information (id, name) from configuration
-        tacacs_template = open(curr_path + '\\nrt_tacacs_servers.template')
+        tacacs_template = open(os.path.join(curr_path, 'nrt_tacacs_servers.template'))
         fsm = textfsm.TextFSM(tacacs_template)
         fsm.Reset()
         ips = fsm.ParseText(config)
@@ -870,7 +837,7 @@ def get_tacacs_server_ips(config, curr_path):
 
 def get_int_status(config, curr_path):
     # Extract interface status from 'show interface status' command output
-    int_stat_template = open(curr_path + '\\txtfsm_templates\\cisco\\nrt_interface_status.template')
+    int_stat_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_interface_status.template"))
     fsm = textfsm.TextFSM(int_stat_template)
     fsm.Reset()
     int_stat = fsm.ParseText(config)
