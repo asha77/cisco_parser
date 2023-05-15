@@ -609,7 +609,11 @@ def obtain_serial(config):
                 if match:
                     return match.group(1).strip()
                 else:
-                    return "Not Found"
+                    match = re.search("\w*Manu-date\n.+\n\d\s*-\s*(\S+)", config)
+                    if match:
+                        return match.group(1).strip()
+                    else:
+                        return "Not Found"
 
 
 def obtain_domain(config):
