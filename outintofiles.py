@@ -24,28 +24,28 @@ def init_files():
         os.mkdir("output")
 
     # инициализация файла c основным выводом
-    resfile = open("output\cparser_output.csv", "w")
+    resfile = open(os.path.join("output", "cparser_output.csv"), "w")
     resfile.write("Configfile;Hostname;Mng IP from filename;Mng from config;Domain Name;Family;Model;Serial;OS;SW Version;Ports avail.;Ports used\n")
     resfile.close()
 
     # инициализация файла с портами, на которых есть соседи
-    resfile = open("output\\all_nei_output.csv", "w")
+    resfile = open(os.path.join("output", "all_nei_output.csv"), "w")
     resfile.write("Hostname;Source Model;Source Mng IP;Port\n")
     resfile.close()
 
     # инициализация файла со связями CDP
-    resfile = open("output\\cdp_nei_output.csv", "w")
+    resfile = open(os.path.join("output", "cdp_nei_output.csv"), "w")
     resfile.write(
         "ConfigFile;Source hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
     resfile.close()
 
     # инициализация файла с перечнем портов, за которыми можно увидеть много MAC-адресов
-    resfile = open("output\\many_macs.csv", "w")
+    resfile = open(os.path.join("output", "many_macs.csv"), "w")
     resfile.write("Hostname;VLAN;MAC;PORT\n")
     resfile.close()
 
     # инициализация файла с конфигурациями интерфейсов
-    resfile = open("output\\interfaces.csv", "w")
+    resfile = open(os.path.join("output", "interfaces.csv"), "w")
     resfile.write(
         'File Name;Hostname;Domain;Switch type;Num of physical ports;Num of SVI ints;Num of ints w/IP;Num up l3 phys ints;'
         'Num access ints;Num up access ints;Num of trunk interfaces;Num up trunk interf;Num access dot1x ports;'
@@ -55,7 +55,7 @@ def init_files():
         '\n')
     resfile.close()
 
-    resfile = open("output\\missed_devices.csv", "w")
+    resfile = open(os.path.join("output", "missed_devices.csv"), "w")
     resfile.write('Hostname;Model;IP;\n')
     resfile.close()
 
@@ -65,7 +65,7 @@ def init_comliance_files():
         os.mkdir("output")
 
     # инициализация файла c основным выводом данных соответствия
-    resfile = open("output\compliance_output.csv", "w")
+    resfile = open(os.path.join("output", "compliance_output.csv"), "w")
     resfile.write("Num;Filename;Hostname;IP;Domain Name;Model;Serial;SW Version;TimeZone;SNMP ver;No SrcRt;"
                   "Pass Encr;Weak Encr;Strong Encr;SSH Chk;Logging buffered (level);SSH Timeout;Boot Cnf;"
                   "ServCnf;CNSCnf;con0 exec-time;con0 trans pref;"
@@ -80,7 +80,7 @@ def init_comliance_files():
 
 
 def all_neighbours_file_output(all_neighbours):
-    all_found_neighbours = open("output\\all_nei_output.csv", "a")
+    all_found_neighbours = open(os.path.join("output", "all_nei_output.csv"), "a")
 
     for i in range(len(all_neighbours)):
         all_found_neighbours.write('{0:1s};{1:1s};{2:1s} \n'.format(
@@ -99,7 +99,7 @@ def all_neighbours_file_output(all_neighbours):
 
 
 def all_neighbours_to_file(devices):
-    all_neighbours = open("output\\all_nei_output.csv", "a")
+    all_neighbours = open(os.path.join("output", "all_nei_output.csv"), "a")
 
     for devs in devices:
         for neighbour in devs['cdp_neighbours']:
@@ -123,7 +123,7 @@ def all_neighbours_to_file(devices):
 
 
 def connectivity_to_file(devices):
-    cdp_neighbours = open("output\\cdp_nei_output.csv", "a")
+    cdp_neighbours = open(os.path.join("output", "cdp_nei_output.csv"), "a")
 #    cdp_neighbours.write("ConfigFile;Source hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
 #   ConfigFile	Source hostname	Source Model	Source Mng IP	Source port	Dest hostname	Dest Model	Dest IP	Dest portn
 
@@ -144,10 +144,10 @@ def connectivity_to_file(devices):
 
 
 def many_macs_file_output(config, curr_path, neighbours, devinfo):
-    mac_template = open(curr_path+'\\nrt_macs.template')
+    mac_template = open(os.path.join(curr_path, "nrt_macs.template"))
     mac_fsm = txtfsmparsers.textfsm.TextFSM(mac_template)
 
-    many_macs = open("output\\many_macs.csv", "a")
+    many_macs = open(os.path.join("output", "many_macs.csv"), "a")
 #    many_macs.write("Hostname;VLAN;MAC;PORT\n")
 
     mac_fsm.Reset()
@@ -167,7 +167,7 @@ def many_macs_file_output(config, curr_path, neighbours, devinfo):
 
 
 def summary_file_output(devices):
-    resfile = open("output\cparser_output.csv", "a")
+    resfile = open(os.path.join("output", "cparser_output.csv"), "a")
 #    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
     # ToDo: сортировать по именам при выводе в файл!!!
     # ToDo: подумать над сравнением двух выводов inventory!!!
@@ -205,7 +205,7 @@ def summary_file_output(devices):
 
 
 def interfaces_to_file(devices):
-    f_interfaces = open("output\\interfaces.csv", "a")
+    f_interfaces = open(os.path.join("output", "interfaces.csv"), "a")
 
     for dev in devices:
         vlans_all = ""
@@ -318,9 +318,9 @@ def proposed_vlans_list(current_vlans):
     # proposed = {id: 'name'}
     proposed_vlans[1000] = 'native'
     proposed_vlans[254] = 'mgmt'
-    proposed_vlans[29] = 'users'
-    proposed_vlans[3983] = 'off_equip'
-    proposed_vlans[9999] = 'media_equip'
+    proposed_vlans[17] = 'users'
+    proposed_vlans[3984] = 'off_equip'
+    proposed_vlans[3987] = 'media_equip'
 
     # dictionary of correct vlan names for proposed list
     nice_dictionary = {150: 'uaz.ent.mgmt.ap_wifi', 8: 'ASUTP_GLZ', 56: 'Pritok', 27: 'ohrana_uaz', 397: 'scada_dop'}
@@ -912,7 +912,7 @@ def write_xls_report(curr_path, ):
             i = i + 1
     sheet_ranges['F64'].value = "Найдено на " + str(i) +" устройствах:\n" + sheet_ranges['F64'].value
 
-    save_workbook(compliance_report, 'output\\compliance_report.xlsx')
+    save_workbook(compliance_report, os.path.join("output", "compliance_report.xlsx"))
     compliance_report.close()
 
 
@@ -922,11 +922,11 @@ def find_missed_devices():
     missed_devices = []
     dname = ''
 
-    with open("output\\cparser_output.csv") as f_cparser:
+    with open(os.path.join("output", "cparser_output.csv")) as f_cparser:
         for line in f_cparser.readlines():
             devs.append(line.split(";"))
 
-    with open("output\\all_nei_output.csv") as f_allnei:
+    with open(os.path.join("output", "all_nei_output.csv")) as f_allnei:
         for line in f_allnei.readlines():
             cdps.append(line.split(";"))
 
@@ -957,7 +957,7 @@ def find_missed_devices():
 
 
 def missed_devices_file_output(missed_devices):
-    f_missed = open("output\\missed_devices.csv", "a")
+    f_missed = open(os.path.join("output", "missed_devices.csv"), "a")
     for i in range(len(missed_devices)):
         f_missed.write('{0:1s};{1:1s};{2:1s}'.format(
             missed_devices[i][0],
