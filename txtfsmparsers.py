@@ -1,6 +1,5 @@
 import os.path
 import textfsm
-import cisco_parser
 import outintofiles
 import regparsers
 
@@ -8,7 +7,7 @@ import regparsers
 def get_cdp_neighbours_to_model(empty_device, config, curr_path):
     # Extracting for Cisco IOS
     if empty_device['os'] == 'cisco_ios_xe' or empty_device['os'] == 'cisco_ios' or empty_device['os'] == 'cisco_ios_xr':
-        nei_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cdp_nei_ios.template"))
+        nei_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cisco_cdp_nei_ios.template"))
 
         fsm = textfsm.TextFSM(nei_template)
         fsm.Reset()
@@ -42,7 +41,7 @@ def get_cdp_neighbours_to_model(empty_device, config, curr_path):
 
     # Extracting for Cisco NX-OS
     if empty_device['os'] == 'cisco_nx_os':
-        nei_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cdp_nei_nx_os.template"))
+        nei_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cisco_cdp_nei_nx_os.template"))
         fsm = textfsm.TextFSM(nei_template)
         fsm.Reset()
         neighbours = fsm.ParseText(config)
@@ -76,7 +75,7 @@ def get_cdp_neighbours_to_model(empty_device, config, curr_path):
 
     # Extracting for Huawei
     if empty_device['os'] == 'huawei_vrp':
-        nei_template = open(os.path.join(curr_path, 'txtfsm_templates', "huawei", "nrt_lldp_nei.template"))
+        nei_template = open(os.path.join(curr_path, 'txtfsm_templates', "huawei", "nrt_huawei_lldp_nei.template"))
         fsm = textfsm.TextFSM(nei_template)
         fsm.Reset()
         neighbours = fsm.ParseText(config)
@@ -187,7 +186,7 @@ def get_cdp_neighbours_to_model(empty_device, config, curr_path):
 
 
 def get_vrfs(config, curr_path, file, devinfo):
-    nei_template = open(os.path.join(curr_path, 'nrt_cdp_nei_ios.template'))
+    nei_template = open(os.path.join(curr_path, 'nrt_cisco_cdp_nei_ios.template'))
     fsm = textfsm.TextFSM(nei_template)
 
     fsm.Reset()
@@ -216,13 +215,13 @@ def get_vrfs(config, curr_path, file, devinfo):
 
 def get_interfaces_config_to_model(empty_device, config, curr_path):
     if empty_device['os'] == 'cisco_ios_xe' or empty_device['os'] == 'cisco_ios' or empty_device['os'] == 'cisco_ios_xr':
-        int_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_interfaces_config.template"))
+        int_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cisco_interfaces_config.template"))
         fsm = textfsm.TextFSM(int_template)
         fsm.Reset()
         interfaces_config = fsm.ParseText(config)
         int_template.close()
 
-        int_status = get_int_status(config, curr_path)  # TODO: not relevant for routers on IOS!!!
+        int_status = get_int_status(config, empty_device['vendor_id'], curr_path)  # TODO: not relevant for routers on IOS!!!
 
         # 'interface': interf[0]
         # 'name': interf[1]
@@ -407,13 +406,13 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
                 empty_device['interfaces'].append(interface)
 
     if empty_device['os'] == 'huawei_vrp':
-        int_template = open(os.path.join(curr_path, "txtfsm_templates", "huawei", "nrt_interfaces_config.template"))
+        int_template = open(os.path.join(curr_path, "txtfsm_templates", "huawei", "nrt_huawei_interfaces_config.template"))
         fsm = textfsm.TextFSM(int_template)
         fsm.Reset()
         interfaces_config = fsm.ParseText(config)
         int_template.close()
 
-        int_status = get_int_status(config, curr_path)  # TODO: not relevant for routers on IOS!!!
+        int_status = get_int_status(config, empty_device['vendor_id'], curr_path)  # TODO: not relevant for routers on IOS!!!
         if empty_device['domain_name'] == "Not set":
             dev_id = empty_device['hostname']
         else:
@@ -573,37 +572,72 @@ def get_vlans_configuration_to_model(empty_device, config, curr_path):
     # Extract vlan information (id, name) from configuration
     # {'id': '10', 'name': 'users'}
 
-    vlan_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_vlans_config.template"))
-    fsm = textfsm.TextFSM(vlan_template)
-    fsm.Reset()
-    vlans = fsm.ParseText(config)
-    vlan_template.close()
+    if empty_device['vendor_id'] == 'cisco':
+        vlan_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cisco_vlans_config.template"))
+        fsm = textfsm.TextFSM(vlan_template)
+        fsm.Reset()
+        vlans = fsm.ParseText(config)
+        vlan_template.close()
 
-    vlans_configuration = {}
+        vlans_configuration = {}
 
-    i: int = 0
-    j: int = 0
-    w: int = 0
+        i: int = 0
+        j: int = 0
+        w: int = 0
 
-    for i in range(0, len(vlans)):
-        if vlans[i][0] != "internal":
-            if vlans[i][0].find(',') != -1:
-                vlans_list =vlans[i][0].split(',')
-                for j in range(0, len(vlans_list)):
-                    if vlans_list[j].find('-') != -1:
-                        inner_list = vlans_list[j].split('-')
-                        for k in range(int(inner_list[0]), int(inner_list[1])+1):
-                            vlans_configuration[k] = ''
-                    else:
-                        vlans_configuration[int(vlans_list[j])] = ''
-            elif vlans[i][0].find('-') != -1:
-                vlans_list = vlans[i][0].split('-')
-                for j in range(int(vlans_list[0]), int(vlans_list[1])+1):
-                    vlans_configuration[j] = ''
-            else:
-                vlans_configuration[int(vlans[i][0])] = vlans[i][1]
+        for i in range(0, len(vlans)):
+            if vlans[i][0] != "internal":
+                if vlans[i][0].find(',') != -1:
+                    vlans_list =vlans[i][0].split(',')
+                    for j in range(0, len(vlans_list)):
+                        if vlans_list[j].find('-') != -1:
+                            inner_list = vlans_list[j].split('-')
+                            for k in range(int(inner_list[0]), int(inner_list[1])+1):
+                                vlans_configuration[k] = ''
+                        else:
+                            vlans_configuration[int(vlans_list[j])] = ''
+                elif vlans[i][0].find('-') != -1:
+                    vlans_list = vlans[i][0].split('-')
+                    for j in range(int(vlans_list[0]), int(vlans_list[1])+1):
+                        vlans_configuration[j] = ''
+                else:
+                    vlans_configuration[int(vlans[i][0])] = vlans[i][1]
 
-    empty_device['vlans'] = vlans_configuration
+        empty_device['vlans'] = vlans_configuration
+
+
+    if empty_device['vendor_id'] == 'huawei':
+        vlan_template = open(os.path.join(curr_path, "txtfsm_templates", "huawei", "nrt_huawei_vlans_config.template"))
+        fsm = textfsm.TextFSM(vlan_template)
+        fsm.Reset()
+        vlans = fsm.ParseText(config)
+        vlan_template.close()
+
+        vlans_configuration = {}
+
+        i: int = 0
+        j: int = 0
+        w: int = 0
+
+        for i in range(0, len(vlans)):
+            if vlans[i][0] != "internal":
+                if vlans[i][0].find(',') != -1:
+                    vlans_list =vlans[i][0].split(',')
+                    for j in range(0, len(vlans_list)):
+                        if vlans_list[j].find('-') != -1:
+                            inner_list = vlans_list[j].split('-')
+                            for k in range(int(inner_list[0]), int(inner_list[1])+1):
+                                vlans_configuration[k] = ''
+                        else:
+                            vlans_configuration[int(vlans_list[j])] = ''
+                elif vlans[i][0].find('-') != -1:
+                    vlans_list = vlans[i][0].split('-')
+                    for j in range(int(vlans_list[0]), int(vlans_list[1])+1):
+                        vlans_configuration[j] = ''
+                else:
+                    vlans_configuration[int(vlans[i][0])] = vlans[i][1]
+        empty_device['vlans'] = vlans_configuration
+
     return empty_device
 
 
@@ -646,7 +680,7 @@ def get_vlans_from_config(config, curr_path):
     # Extract vlan information (id, name) from configuration
     # {'id': '10', 'name': 'default'}
 
-    vlan_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_vlans_config.template"))
+    vlan_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cisco_vlans_config.template"))
     fsm = textfsm.TextFSM(vlan_template)
     fsm.Reset()
     vlans = fsm.ParseText(config)
@@ -680,7 +714,7 @@ def get_vlans_from_config(config, curr_path):
 
 def get_access_config(config, curr_path):
     # Extract vty device access parameters
-    access_template = open(os.path.join(curr_path, "nrt_dev_access.template"))
+    access_template = open(os.path.join(curr_path, "nrt_cisco_dev_access.template"))
     fsm = textfsm.TextFSM(access_template)
     fsm.Reset()
     access = fsm.ParseText(config)
@@ -750,7 +784,7 @@ def get_access_config(config, curr_path):
 
 def get_con_access_config(config, curr_path):
     # Extract console device access parameters
-    access_template = open(os.path.join(curr_path, "nrt_dev_con_access.template"))
+    access_template = open(os.path.join(curr_path, "nrt_cisco_dev_con_access.template"))
     fsm = textfsm.TextFSM(access_template)
     fsm.Reset()
     access = fsm.ParseText(config)
@@ -804,7 +838,7 @@ def get_tacacs_server_ips(config, curr_path):
             return "Fail"
     else:
         # Extract vlan information (id, name) from configuration
-        tacacs_template = open(os.path.join(curr_path, 'nrt_tacacs_servers.template'))
+        tacacs_template = open(os.path.join(curr_path, 'nrt_cisco_tacacs_servers.template'))
         fsm = textfsm.TextFSM(tacacs_template)
         fsm.Reset()
         ips = fsm.ParseText(config)
@@ -826,27 +860,48 @@ def get_tacacs_server_ips(config, curr_path):
                 return "Fail"
 
 
-def get_int_status(config, curr_path):
+def get_int_status(config, vendor_id, curr_path):
     # Extract interface status from 'show interface status' command output
-    int_stat_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_interface_status.template"))
-    fsm = textfsm.TextFSM(int_stat_template)
-    fsm.Reset()
-    int_stat = fsm.ParseText(config)
+    if vendor_id == 'cisco':
+        int_stat_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "nrt_cisco_interface_status.template"))
+        fsm = textfsm.TextFSM(int_stat_template)
+        fsm.Reset()
+        int_stat = fsm.ParseText(config)
 
-    interfaces_status = []
+        interfaces_status = []
 
-    for interf in int_stat:
-    # Port      Name     Status     Vlan    Duplex Speed    Type
-    # Gi1/0/1           notconnect  1267     auto   auto    10/100/1000BaseTX
+        for interf in int_stat:
+        # Port      Name     Status     Vlan    Duplex Speed    Type
+        # Gi1/0/1           notconnect  1267     auto   auto    10/100/1000BaseTX
+            interfaces_status.append({
+                'interface': interf[0],
+                'name': interf[1],
+                'status': interf[2],
+                'vlan': interf[3],
+                'duplex': interf[4],
+                'speed': interf[5],
+                'type': interf[6]
+            })
 
-        interfaces_status.append({
-            'interface': interf[0],
-            'name': interf[1],
-            'status': interf[2],
-            'vlan': interf[3],
-            'duplex': interf[4],
-            'speed': interf[5],
-            'type': interf[6]
-        })
+    if vendor_id == 'huawei':
+        int_stat_template = open(os.path.join(curr_path, "txtfsm_templates", "huawei", "nrt_huawei_interface_description.template"))
+        fsm = textfsm.TextFSM(int_stat_template)
+        fsm.Reset()
+        int_stat = fsm.ParseText(config)
+
+        interfaces_status = []
+
+        for interf in int_stat:
+        # Port      Name     Status     Vlan    Duplex Speed    Type
+        # Gi1/0/1           notconnect  1267     auto   auto    10/100/1000BaseTX
+            interfaces_status.append({
+                'interface': interf[0],
+                'name': interf[3],
+                'status': interf[1],
+                'vlan': 0,
+                'duplex': 'TBD',
+                'speed': 'TBD',
+                'type': 'TBD'
+            })
 
     return interfaces_status

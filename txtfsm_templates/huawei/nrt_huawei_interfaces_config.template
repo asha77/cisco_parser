@@ -49,5 +49,5 @@ Start
   ^\s+${MDIX}\s+mdix auto$$
   ^\s+spanning-tree\s+bpdufilter\s+${BPDUFILTER}$$
   ^\s+spanning-tree\s+bpduguard\s+${BPDUGUARD}$$
-  ^!$$ -> Record
+  ^#$$ -> Record
 #  ^. -> Error

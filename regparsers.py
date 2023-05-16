@@ -60,11 +60,11 @@ def obtain_model(config):
                 else:
                     match = re.search(";\s(\S+)\sConfiguration\sEditor;", config)
                     if match:
-                        return get_hp_model_from_pn(match.group(1).strip())
+                        return device_detection.get_hp_model_from_pn(match.group(1).strip())
                     else:
                         match = re.search('System Description "HPE OfficeConnect Switch.+\)\s(\S+),\s.+', config)
                         if match:
-                            return get_hp_model_from_pn(match.group(1).strip())
+                            return device_detection.get_hp_model_from_pn(match.group(1).strip())
                         else:
                             match = re.search('\sversion\s(\S+),\sRelease\s(\S+)\n#\n\ssysname\s(\S+)', config)
                             if match:
@@ -160,6 +160,10 @@ def obtain_software_version(os, config):
         if match:
             return match.group(1).strip()
     elif os == 'aruba_aos-s':
+        match = re.search("; \S+ Configuration Editor; Created on release #(\S+)", config)
+        if match:
+            return match.group(1).strip()
+    elif os == 'huawei_vrp':
         match = re.search("; \S+ Configuration Editor; Created on release #(\S+)", config)
         if match:
             return match.group(1).strip()
@@ -276,6 +280,7 @@ def obtain_mng_ip_from_config(device, config):
 
 def fill_devinfo_to_model_from_config(empty_device, config, file):
     vendor_id =  device_detection.obtain_device_vendor_id(config)
+    empty_device['vendor_id'] = vendor_id
     empty_device['vendor'] = device_detection.vendor_id_to_vendor(vendor_id)
     empty_device['family'] = device_detection.obtain_device_family(vendor_id, config)
     empty_device['os'] = device_detection.obtain_device_os(vendor_id, config)

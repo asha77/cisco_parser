@@ -163,7 +163,7 @@ def obtain_device_os(vendor_id, config):
         if match:
             return 'huawei_vrp'
 
-    if vendor_id == 'hpe' or vendor == 'hpe_comware' or vendor == 'hpe_aruba':
+    if vendor_id == 'hpe' or vendor_id == 'hpe_comware' or vendor_id == 'hpe_aruba':
         match = re.search(';\s(\S+)\sConfiguration\sEditor;', config)
         if match:
             return 'aruba_aos-s'

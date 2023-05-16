@@ -1,0 +1,10 @@
+Value Required VLAN_ID (\d+)
+Value VLAN_NANE (\S+)
+Value VLAN_DESCRIPTION (\S+)
+
+Start
+  ^vlan\s+${VLAN_ID}
+  ^\s+description\s+${VLAN_DESCRIPTION}
+  ^\s+name\s+${VLAN_NANE}
+  ^#$$ -> Record
+#  ^. -> Error
