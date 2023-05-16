@@ -29,6 +29,11 @@ def obtain_device_vendor_id(config):
     '''
     Extract device vendor: cisco, arista, huawei, hpe
     '''
+
+    match = re.search("Copyright \(c\) [0-9]{4}-[0-9]{4} by Cisco Systems, Inc.", config)
+    if match:
+        return 'cisco'
+
     match = re.search("Technical Support: http://www.cisco.com/techsupport", config)
     if match:
         return 'cisco'
