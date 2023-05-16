@@ -1,4 +1,6 @@
 import os
+
+import device_detection
 import regparsers
 
 
@@ -12,8 +14,11 @@ def check_config_duplicates(list_of_files):
 
     for file in list_of_files:
         if os.path.isfile(file):
-            with open(file, "r") as conffile:
+            with open(file, "r", encoding='utf-8') as conffile:
                 config = conffile.read()
+
+                print(device_detection.obtain_device_vendor_id(config), " - ", regparsers.obtain_serial(config), ' - ', file)
+
                 serial_list.append([])
                 serial_list[filenum].append(filenum + 1)
                 serial_list[filenum].append(file)

@@ -5,6 +5,8 @@ config_entity = {
     'mgmt_ipv4_from_filename': '',                  # 192.168.0.1
     'mgmt_v4_autodetect': '',                       # 192.168.0.1
     'mgmt_v6_autodetect': '',                       # 192::1
+    'vendor': '',                                   # Cisco Systems
+    'vendor_id': '',                                # cisco
     'model': '',                                    # C9300-48T
     'family': '',                                   # cisco_catalyst, cisco_isr, cisco_nexus, arista_switch, cisco_vrouter, huawei_ce, huawei_s, huawei_ar, hpe_switch, hpe_switch2, hpe_aruba_switch
     'os': '',                                       # cisco_ios_xe, cisco_ios, cisco_ios_xr, arista_eos, cisco_nx_os, aruba_aos-s, hpe_os, huawei_vrp, hpe_comware

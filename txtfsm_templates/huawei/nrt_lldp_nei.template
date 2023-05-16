@@ -40,7 +40,7 @@ Start
   ^Maximum\s+frame\s+Size
   ^MED\s+Device\s+information -> MED
   ^\s*$$
-  ^. -> Error
+##  ^. -> Error
 
 SystemDescription
   ^${SYSTEM_DESCRIPTION} -> IgnoreDescription

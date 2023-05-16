@@ -414,15 +414,6 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
         int_template.close()
 
         int_status = get_int_status(config, curr_path)  # TODO: not relevant for routers on IOS!!!
-
-        # 'interface': interf[0]
-        # 'name': interf[1]
-        # 'status': interf[2]
-        # 'vlan': interf[3]
-        # 'duplex': interf[4]
-        # 'speed': interf[5]
-        # 'type': interf[6]
-
         if empty_device['domain_name'] == "Not set":
             dev_id = empty_device['hostname']
         else:
