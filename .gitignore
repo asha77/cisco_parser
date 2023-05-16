@@ -1,2 +1,5 @@
 /output.tar
 /*.bkp
+venv
+.venv
+__pycache__
