@@ -10,7 +10,7 @@ import regparsers
 interfaces = [
     [["Ethernet", "Eth"], "Eth"],
     [["FastEthernet", " FastEthernet", "Fa", "interface FastEthernet"], "Fa"],
-    [["GigabitEthernet", "Gi", " GigabitEthernet", "interface GigabitEthernet"], "Gi"],
+    [["GigabitEthernet", "Gi", "GE", " GigabitEthernet", "interface GigabitEthernet"], "Gi"],
     [["TenGigabitEthernet", "Te"], "Te"],
     [["Port-channel", "Po"], "Po"],
     [["Serial"], "Ser"],

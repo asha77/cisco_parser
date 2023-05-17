@@ -427,7 +427,7 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
                     trunk_vlan_ids = trunk_vlan_ids + ',' + intf[9]
 
                 for i_key in range(0, len(int_status)):
-                    if int_status[i_key]['interface'] == outintofiles.normalize_interface_names(intf[0]):
+                    if outintofiles.normalize_interface_names(int_status[i_key]['interface']) == outintofiles.normalize_interface_names(intf[0]):
                         break
 
                 if ((intf[6] == 'access') and (int_status[i_key]['vlan'].isdigit())):
@@ -911,7 +911,7 @@ def get_int_status(config, vendor_id, curr_path):
                 'interface': interf[0],
                 'name': interf[3],
                 'status': port_status,
-                'vlan': 0,
+                'vlan': '0',
                 'duplex': 'TBD',
                 'speed': 'TBD',
                 'type': 'TBD'
