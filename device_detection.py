@@ -30,15 +30,19 @@ def obtain_device_vendor_id(config):
     Extract device vendor: cisco, arista, huawei, hpe
     '''
 
-    match = re.search("Copyright \(c\) [0-9]{4}-[0-9]{4} by Cisco Systems, Inc.", config)
+    match = re.search("The copyrights to certain works contained in this software are", config)
     if match:
         return 'cisco'
 
-    match = re.search("Technical Support: http://www.cisco.com/techsupport", config)
+    match = re.search("Current configuration : .*\n!\n! No configuration change since last restart", config)
     if match:
         return 'cisco'
 
-    match = re.search("TAC support: http://www.cisco.com/tac", config)
+    match = re.search("sh\w*\srun.*\n!\n! Last configuration change at", config)
+    if match:
+        return 'cisco'
+
+    match = re.search("sh\w*\srun.*\nBuilding configuration...\n\nCurrent configuration", config)
     if match:
         return 'cisco'
 
@@ -46,7 +50,11 @@ def obtain_device_vendor_id(config):
     if match:
         return 'cisco'
 
-    match = re.search("Huawei Versatile Routing Platform Software", config)
+    match = re.search("#*\s*dis\w*\scur.*\n!Software Version\s(\S*)", config)
+    if match:
+        return 'huawei'
+
+    match = re.search("\ssysname\s(\S*)", config)
     if match:
         return 'huawei'
 

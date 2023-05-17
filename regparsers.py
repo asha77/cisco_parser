@@ -37,40 +37,47 @@ def obtain_timezone(config):
         return "Not set"
 
 
-def obtain_model(config):
+def obtain_model(vendor_id, config):
     '''
     Extract model number
     '''
-    match = re.search("Model \wumber\ *: (.*)", config)
-    if match:
-        return match.group(1).strip()
-    else:
-#        match = re.search("\wisco (.*) \(.*\) \w* (with )*\d+K\/\d+K bytes of memory.", config)
-        match = re.search("\wisco (\S+) .* (with)*\d+K\/\d+K bytes of memory.", config)
+    if vendor_id == 'cisco':
+        match = re.search("Model \wumber\ *: (.*)", config)
         if match:
             return match.group(1).strip()
         else:
-            match = re.search("\ \ cisco Nexus9000 (.*) Chassis", config)
+            # match = re.search("\wisco (.*) \(.*\) \w* (with )*\d+K\/\d+K bytes of memory.", config)
+            match = re.search("\wisco (\S+) .* (with)*\d+K\/\d+K bytes of memory.", config)
             if match:
-                return "N9K-"+match.group(1).strip()
+                return match.group(1).strip()
             else:
-                match = re.search("ROM: Bootstrap program is Linux", config)
+                match = re.search("\ \ cisco Nexus9000 (.*) Chassis", config)
                 if match:
-                    return "Cisco IOS vRouter "
+                    return "N9K-"+match.group(1).strip()
                 else:
-                    match = re.search(";\s(\S+)\sConfiguration\sEditor;", config)
+                    match = re.search("ROM: Bootstrap program is Linux", config)
                     if match:
-                        return device_detection.get_hp_model_from_pn(match.group(1).strip())
-                    else:
-                        match = re.search('System Description "HPE OfficeConnect Switch.+\)\s(\S+),\s.+', config)
-                        if match:
-                            return device_detection.get_hp_model_from_pn(match.group(1).strip())
-                        else:
-                            match = re.search('\sversion\s(\S+),\sRelease\s(\S+)\n#\n\ssysname\s(\S+)', config)
-                            if match:
-                                return 'hp_switch'
-                            else:
-                                return "Not found"
+                        return "Cisco IOS vRouter "
+
+    if vendor_id == 'huawei':
+        match = re.search("Copyright.*HUAWEI.*\nHUAWEI\s([\w-]+)\s", config)
+        if match:
+            return match.group(1).strip()
+
+    if vendor_id == 'hpe' or vendor_id == 'hpe_comware' or vendor_id == 'hpe_aruba':
+        match = re.search(";\s(\S+)\sConfiguration\sEditor;", config)
+        if match:
+            return device_detection.get_hp_model_from_pn(match.group(1).strip())
+        else:
+            match = re.search('System Description "HPE OfficeConnect Switch.+\)\s(\S+),\s.+', config)
+            if match:
+                return device_detection.get_hp_model_from_pn(match.group(1).strip())
+            else:
+                match = re.search('\sversion\s(\S+),\sRelease\s(\S+)\n#\n\ssysname\s(\S+)', config)
+                if match:
+                    return 'hp_switch'
+
+    return "Not found"
 
 
 def obtain_serial(config):
@@ -78,9 +85,9 @@ def obtain_serial(config):
     Extract serial number
     '''
 
-    vendor = device_detection.obtain_device_vendor_id(config)
+    vendor_id = device_detection.obtain_device_vendor_id(config)
 
-    if vendor == 'cisco':
+    if vendor_id == 'cisco':
         match = re.search("\wystem \werial \wumber\ *: (.*)", config)
         if match:
             return match.group(1).strip()
@@ -99,16 +106,25 @@ def obtain_serial(config):
                     else:
                         return "Not Found"
 
-    if vendor == 'huawei':
-        match = re.search("\w*Manu-date\n.+\n\d\s*-\s*(\S+)", config)
+    if vendor_id == 'huawei':
+        match = re.search("Slot       Card   Type               Serial-number            Manu-date", config)
         if match:
-            return match.group(1).strip()
+            match = re.search("\w*Manu-date\n.+\n\d[\s-]*[\w-]*\s*(\w*)", config)
+            if match:
+                return match.group(1).strip()
+
+        match = re.search("Slot  Sub  Serial-number          Manu-date", config)
+        if match:
+            match = re.search("\w*Manu-date\n.+\n\d[\s-]*\s*(\w*)", config)
+            if match:
+                return match.group(1).strip()
+
 
         match = re.search("Equipment SN\(ESN\): (\S+)", config)
         if match:
             return match.group(1).strip()
 
-    if vendor == 'hpe_comware' or  vendor == 'hpe_aruba':
+    if vendor_id == 'hpe_comware' or vendor_id == 'hpe_aruba':
         match = re.search("\wystem \werial \wumber\ *: (.*)", config)
         if match:
             return match.group(1).strip()
@@ -134,7 +150,7 @@ def obtain_domain(config):
     Extract domain name
     '''
 
-    match = re.search("ip domain[\s\S]name (.*)", config)
+    match = re.search("domain[\s\S-]name (.*)", config)
     if match:
         return match.group(1).strip()
     else:
@@ -159,12 +175,18 @@ def obtain_software_version(os, config):
         match = re.search("\ *NXOS: version (.*)", config)
         if match:
             return match.group(1).strip()
+    elif os == 'EOS':
+        match = re.search("Software image version: (.*)", config)
+        if match:
+            return match.group(1).strip()
     elif os == 'aruba_aos-s':
         match = re.search("; \S+ Configuration Editor; Created on release #(\S+)", config)
+        # match = re.search("\s*Software revision\s*:\s*(\S+)", config)
         if match:
             return match.group(1).strip()
     elif os == 'huawei_vrp':
-        match = re.search("; \S+ Configuration Editor; Created on release #(\S+)", config)
+        match = re.search("VRP \(R\) software, Version (.*)", config)
+
         if match:
             return match.group(1).strip()
     else:
@@ -212,6 +234,32 @@ def obtain_mng_ip_from_config(device, config):
                     gwip = "0.0.0.0"    # Gateway not found, fake gwip
 
         match = re.findall("\sip address ([0-9]+.[0-9]+.[0-9]+.[0-9]+) ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+        found = False
+        if match:
+            for i in range(len(match)):
+                ip = netaddr.IPNetwork(match[i][0])
+                ip.netmask = match[i][1]
+                if gwip in ip:
+                    found = True
+                    return match[i][0]
+            if found == False:
+                return "Not Found"
+        else:
+            return "Not Found"
+
+
+    if device['os'] == 'huawei_vrp':
+        gw_match = re.search("ip route-static 0.0.0.0 0.0.0.0 ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+        if gw_match:
+            gwip = netaddr.IPAddress(gw_match.group(1).strip())
+        else:
+            gw_match = re.search("^\s+0.0.0.0\/0\s+\w+\s+\d+\s+\d+\s+\w+\s+([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
+            if gw_match:
+                gwip = netaddr.IPAddress(gw_match.group(1).strip())
+            else:
+                gwip = "0.0.0.0"    # Gateway not found, fake gwip
+
+        match = re.findall("\s+ip address ([0-9]+.[0-9]+.[0-9]+.[0-9]+) ([0-9]+.[0-9]+.[0-9]+.[0-9]+)", config)
         found = False
         if match:
             for i in range(len(match)):
@@ -289,7 +337,7 @@ def fill_devinfo_to_model_from_config(empty_device, config, file):
     empty_device['mgmt_ipv4_from_filename'] = obtain_mng_ip_from_filename(file)
     empty_device['mgmt_v4_autodetect'] = obtain_mng_ip_from_config(empty_device, config)
     empty_device['domain_name'] = obtain_domain(config)
-    empty_device['model'] = obtain_model(config)
+    empty_device['model'] = obtain_model(vendor_id, config)
     empty_device['serial'] = obtain_serial(config)
     empty_device['sw_version'] = obtain_software_version(empty_device['os'], config)
     return empty_device

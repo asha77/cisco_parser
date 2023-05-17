@@ -49,7 +49,7 @@ IgnoreDescription
   ^System\s+capabilities\s+supported -> Start
   ^${SYSTEM_DESCRIPTION}
   ^\s*$$
-  ^.*$$ -> Error
+#  ^.*$$ -> Error
 
 MED
   ^Device\s+class
@@ -73,4 +73,4 @@ MED
   ^Ca
   ^\S+\s+has\s+\d+\s+neighbors -> Record Start
   ^\s*$$
-  ^. -> Error
+#  ^. -> Error

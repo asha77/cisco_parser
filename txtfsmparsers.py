@@ -873,10 +873,17 @@ def get_int_status(config, vendor_id, curr_path):
         for interf in int_stat:
         # Port      Name     Status     Vlan    Duplex Speed    Type
         # Gi1/0/1           notconnect  1267     auto   auto    10/100/1000BaseTX
+        # connected, notconnect, TODO: up (for virtual interfaces)
+
+            if interf[2] == 'connected' or interf[2] == 'up':
+                port_status = 'connected'
+            if interf[2] == 'notconnect' or interf[2] == 'down':
+                port_status = 'notconnect'
+
             interfaces_status.append({
                 'interface': interf[0],
                 'name': interf[1],
-                'status': interf[2],
+                'status': port_status,
                 'vlan': interf[3],
                 'duplex': interf[4],
                 'speed': interf[5],
@@ -894,10 +901,16 @@ def get_int_status(config, vendor_id, curr_path):
         for interf in int_stat:
         # Port      Name     Status     Vlan    Duplex Speed    Type
         # Gi1/0/1           notconnect  1267     auto   auto    10/100/1000BaseTX
+
+            if interf[1] == 'connected' or interf[1] == 'up':
+                port_status = 'connected'
+            if interf[1] == 'notconnect' or interf[1] == 'down':
+                port_status = 'notconnect'
+
             interfaces_status.append({
                 'interface': interf[0],
                 'name': interf[3],
-                'status': interf[1],
+                'status': port_status,
                 'vlan': 0,
                 'duplex': 'TBD',
                 'speed': 'TBD',

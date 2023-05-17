@@ -55,7 +55,7 @@ def main():
             for file in list_of_files:
                 bar.text = f'Processing file: {file}, please wait...'
                 if os.path.isfile(file):
-                    with open(file, "r") as conffile:
+                    with open(file, "r", encoding='utf-8') as conffile:
                         config = conffile.read()
                         empty_device = copy.deepcopy(datamodel.config_entity)
 

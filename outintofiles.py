@@ -16,6 +16,9 @@ interfaces = [
     [["Serial"], "Ser"],
     [["Vlan"], "Vlan"],
     [["Loopback"], "Lo"],
+    [["Eth-Trunk"], "Eth-Trunk"],
+    [["Vlanif"], "Vlanif"],
+
 ]
 
 
@@ -118,8 +121,6 @@ def all_neighbours_to_file(devices):
             ))
     all_neighbours.close()
     return True
-
-
 
 
 def connectivity_to_file(devices):
