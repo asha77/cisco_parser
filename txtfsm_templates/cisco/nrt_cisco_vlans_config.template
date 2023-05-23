@@ -1,4 +1,4 @@
-Value VLAN_ID (\S+)
+Value Required VLAN_ID (\d+)
 Value VLAN_NANE (\S+)
 
 Start

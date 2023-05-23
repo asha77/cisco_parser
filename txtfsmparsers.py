@@ -601,10 +601,12 @@ def get_vlans_configuration_to_model(empty_device, config, curr_path):
                     for j in range(int(vlans_list[0]), int(vlans_list[1])+1):
                         vlans_configuration[j] = ''
                 else:
-                    vlans_configuration[int(vlans[i][0])] = vlans[i][1]
+                    try:
+                        vlans_configuration[int(vlans[i][0])] = vlans[i][1]
+                    except:
+                        print("Exception111")
 
         empty_device['vlans'] = vlans_configuration
-
 
     if empty_device['vendor_id'] == 'huawei':
         vlan_template = open(os.path.join(curr_path, "txtfsm_templates", "huawei", "nrt_huawei_vlans_config.template"))
@@ -877,8 +879,12 @@ def get_int_status(config, vendor_id, curr_path):
 
             if interf[2] == 'connected' or interf[2] == 'up':
                 port_status = 'connected'
-            if interf[2] == 'notconnect' or interf[2] == 'down':
+            elif interf[2] == 'notconnect' or interf[2] == 'down':
                 port_status = 'notconnect'
+            elif interf[2] == 'disabled':
+                port_status = 'notconnect'
+            else:
+                port_status = 'not_determined'
 
             interfaces_status.append({
                 'interface': interf[0],

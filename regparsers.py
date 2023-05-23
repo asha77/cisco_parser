@@ -715,10 +715,11 @@ def get_only_name(name):
     Cut domain name from device name
     '''
 
-    if (not name.find('.') == -1):
-        return name[0:name.find('.')]
-    else:
-        return name
+#    if (not name.find('.') == -1):
+#        return name[0:name.find('.')]
+    return name
+#    else:
+#        return name
 
 
 def strip_cisco_from_cdp_name(name):

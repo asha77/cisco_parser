@@ -102,7 +102,7 @@ def all_neighbours_file_output(all_neighbours):
 
 
 def all_neighbours_to_file(devices):
-    all_neighbours = open(os.path.join("output", "all_nei_output.csv"), "a")
+    all_neighbours = open(os.path.join("output", "all_nei_output.csv"), "a", encoding='utf-8')
 
     for devs in devices:
         for neighbour in devs['cdp_neighbours']:
@@ -124,7 +124,7 @@ def all_neighbours_to_file(devices):
 
 
 def connectivity_to_file(devices):
-    cdp_neighbours = open(os.path.join("output", "cdp_nei_output.csv"), "a")
+    cdp_neighbours = open(os.path.join("output", "cdp_nei_output.csv"), "a", encoding='utf-8')
 #    cdp_neighbours.write("ConfigFile;Source hostname;Source Model;Source Mng IP;Source port;Dest hostname;Dest Model;Dest IP;Dest portn\n")
 #   ConfigFile	Source hostname	Source Model	Source Mng IP	Source port	Dest hostname	Dest Model	Dest IP	Dest portn
 
@@ -923,11 +923,11 @@ def find_missed_devices():
     missed_devices = []
     dname = ''
 
-    with open(os.path.join("output", "cparser_output.csv")) as f_cparser:
+    with open(os.path.join("output", "cparser_output.csv"), encoding='utf-8') as f_cparser:
         for line in f_cparser.readlines():
             devs.append(line.split(";"))
 
-    with open(os.path.join("output", "all_nei_output.csv")) as f_allnei:
+    with open(os.path.join("output", "all_nei_output.csv"), encoding='utf-8') as f_allnei:
         for line in f_allnei.readlines():
             cdps.append(line.split(";"))
 
@@ -958,7 +958,7 @@ def find_missed_devices():
 
 
 def missed_devices_file_output(missed_devices):
-    f_missed = open(os.path.join("output", "missed_devices.csv"), "a")
+    f_missed = open(os.path.join("output", "missed_devices.csv"), "a", encoding='utf-8')
     for i in range(len(missed_devices)):
         f_missed.write('{0:1s};{1:1s};{2:1s}'.format(
             missed_devices[i][0],
