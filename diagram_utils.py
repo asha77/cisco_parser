@@ -3,7 +3,11 @@ def get_dev_style_from_model(model):
     building_style = "shape=mxgraph.cisco.buildings.generic_building;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;"
     router_style = "shape=mxgraph.cisco.routers.atm_router;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;"
     l2_switch_style = "shape=mxgraph.cisco.switches.workgroup_switch;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;"
+    l2_huawei_switch_style = "shape=mxgraph.cisco.switches.workgroup_switch;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#CC6600;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;"
+
     l3_switch_style = "shape=mxgraph.cisco.switches.layer_3_switch;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;"
+    l3_huawei_switch_style = "shape=mxgraph.cisco.switches.layer_3_switch;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#CC6600;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;"
+
     nexus_switch_style = "shape=mxgraph.cisco.switches.server_switch;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;"
     ind_switch_style = "shape=mxgraph.cisco.switches.workgroup_switch;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#006600;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;"
     other_device_style = "rounded=1;whiteSpace=wrap;html=1;"
@@ -18,6 +22,12 @@ def get_dev_style_from_model(model):
         return [router_style, 120, 60]
     elif (("CGS" in model) or ("IE-" in model)):
         return [ind_switch_style, 120, 60]
+    elif ("S57" in model):
+        return [l2_huawei_switch_style, 120, 60]
+    elif ("S67" in model):
+        return [l2_huawei_switch_style, 120, 60]
+    elif ("S127" in model):
+        return [l2_huawei_switch_style, 160, 80]
     else:
         return [other_device_style, 120, 60]
 
@@ -41,6 +51,8 @@ def filter_devices(devname):
     elif "AP-" in devname:      # TODO: custom filter
         return False
     elif "esxi" in devname:      # TODO: custom filter
+        return False
+    elif "AVX" in devname:      # TODO: custom filter
         return False
     else:
         return True

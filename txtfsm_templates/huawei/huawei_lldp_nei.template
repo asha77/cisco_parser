@@ -7,7 +7,7 @@ Value NEIGHBOR_INTERFACE (.*?)
 Value NEIGHBOR (.+?)
 Value List SYSTEM_DESCRIPTION (.*)
 Value CAPABILITIES (.*?)
-Value MANAGEMENT_IP (\S+)
+Value MANAGEMENT_IP (\d+\.\d+\.\d+\.\d+)
 Value VLAN (\d+)
 Value SERIAL (\S+)
 
@@ -22,7 +22,7 @@ Start
   ^Port\s+description\s+:${NEIGHBOR_INTERFACE}\s*$$
   ^System\s+name\s+:${NEIGHBOR}\s*$$
   ^Management\s+address\s+type
-  ^Management\s+address\s*:\s*${MANAGEMENT_IP}
+  ^Management\s+address\s*\S*\s*:\s*${MANAGEMENT_IP}$$
   ^Expired\s+time
   ^Port\s+VLAN\s+ID\(PVID\)\s+:${VLAN}
   ^VLAN\s+name\s+of\s+VLAN

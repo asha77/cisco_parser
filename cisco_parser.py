@@ -116,8 +116,8 @@ def main():
         # diagram.add_link("R2", "R3", src_label="Gi0/1", trgt_label="ge-0/1/2", data={"speed": "1G", "media": "10G-LR"})
 
         for device in devices:
-            if diagram_utils.filter_devices(regparsers.get_only_name(device['hostname'])):
-                lbtext = regparsers.get_only_name(device['hostname']) + "&lt;div&gt;" + device['model']
+            if diagram_utils.filter_devices(regparsers.get_only_name(device['hostname'], device['domain_name'])):
+                lbtext = regparsers.get_only_name(device['hostname'], device['domain_name']) + "&lt;div&gt;" + device['model']
                 if device['domain_name'] == "Not set":
                     dev_id = device['hostname']
                 else:
@@ -136,8 +136,7 @@ def main():
         # Add links between devices on diagram
         for device in devices:
             for cdp_neighbour in device['cdp_neighbours']:
-
-                if diagram_utils.filter_devices(regparsers.get_only_name(cdp_neighbour['local_id'])) and diagram_utils.filter_devices(regparsers.get_only_name(cdp_neighbour['remote_id'])):
+                if diagram_utils.filter_devices(regparsers.get_only_name(cdp_neighbour['local_id'], device['domain_name'])) and diagram_utils.filter_devices(regparsers.get_only_name(cdp_neighbour['remote_id'], device['domain_name'])):
 
                     linkstyle = diagram_utils.get_link_style_from_model(cdp_neighbour['local_interface'])   # ToDo: provide actual data info on links
 

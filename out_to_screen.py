@@ -100,9 +100,6 @@ def tbl_complfooter_out2scr():
         "--------")
 
 
-
-
-
 def print_devices_summary(devices):
     tbl_header_out2scr()
 

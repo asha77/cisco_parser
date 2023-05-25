@@ -710,16 +710,18 @@ def is_logical_int(intname):
         return False
 
 
-def get_only_name(name):
+def get_only_name(name, domain_name):
     '''
     Cut domain name from device name
     '''
 
-#    if (not name.find('.') == -1):
-#        return name[0:name.find('.')]
-    return name
-#    else:
-#        return name
+    if domain_name != 'Not set':
+        if (not name.find(domain_name) == -1):
+            return name[0:name.find(domain_name)]
+        else:
+            return name
+    else:
+        return name
 
 
 def strip_cisco_from_cdp_name(name):

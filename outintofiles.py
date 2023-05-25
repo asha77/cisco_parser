@@ -145,7 +145,7 @@ def connectivity_to_file(devices):
 
 
 def many_macs_file_output(config, curr_path, neighbours, devinfo):
-    mac_template = open(os.path.join(curr_path, "nrt_cisco_macs.template"))
+    mac_template = open(os.path.join(curr_path, "cisco_macs.template"))
     mac_fsm = txtfsmparsers.textfsm.TextFSM(mac_template)
 
     many_macs = open(os.path.join("output", "many_macs.csv"), "a")
