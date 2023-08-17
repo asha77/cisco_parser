@@ -175,7 +175,12 @@ def main():
             if os.path.isfile(file):
                 with open(file, "r") as conffile:
                     config = conffile.read()
-                    outintofiles.check_compliance(list_of_files.index(file), file, curr_path, config)
+                    empty_device = copy.deepcopy(datamodel.config_entity)
+
+                    # get basic parameters
+                    regparsers.fill_devinfo_to_model_from_config(empty_device, config, file)  # add to model
+
+                    outintofiles.check_compliance(list_of_files.index(file), file, curr_path, config, empty_device)
                     outintofiles.write_compliance()
 
         outintofiles.write_xls_report(curr_path)

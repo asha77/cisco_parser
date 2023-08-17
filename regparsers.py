@@ -605,7 +605,7 @@ def get_number_of_physical_ints(interfaces):
     intcount = 0
 
     for inter in interfaces:
-        if is_physical_interface(inter['int_type']):
+        if is_physical_interface(inter['type']):
             intcount = intcount + 1
     return (intcount)
 
@@ -634,7 +634,7 @@ def get_number_of_svis(ints):
     intcount = 0
 
     for inter in ints:
-        if inter['int_type'] == 'svi':
+        if inter['type'] == 'svi':
             intcount = intcount + 1
     return intcount
 
@@ -779,7 +779,7 @@ def get_number_of_connected_trunk_ints(ints):
 def get_number_of_connected_l3_ints(ints):
     num = 0
     for inter in ints:
-        if ((inter['status'] == 'connected') and (inter['int_type'] == 'ethernet' or inter['int_type'] == 'serial') and (not inter['ipv4'] == '')):
+        if ((inter['status'] == 'connected') and (inter['type'] == 'ethernet' or inter['type'] == 'serial') and (not inter['ipv4'] == '')):
             num = num + 1
     return num
 

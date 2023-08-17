@@ -43,8 +43,9 @@ config_entity = {
 interface_entity = {
     'name': '',                                     # gi0/1
     'description': '',                              # First_interface
-    'int_type': '',                                 # ethernet, serial, svi, po, tunnel, loopback, not set
-    'speed': '',                                    # 1000BaseT
+    'type': '',                                     # ethernet, serial, svi, po, tunnel, loopback, not set
+    'physical_type': '',                            # 1000BaseT, SFP-10GBase-LR, 1000BaseLX SFP, SFP-10GBase-CU3M
+    'actual_speed': '',                             # actual speed, i.e. a-1000 = 1G, 25G, 1000, 10G, 100G
     'ipv4': [],                                     # '20.20.20.2'
     'mgmt': "",                                     # no
     'status': '',                                   # connected, notconnect, up (for virtual interfaces)

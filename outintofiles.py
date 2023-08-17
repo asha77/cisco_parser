@@ -1,5 +1,6 @@
 import os
 import txtfsmparsers
+import cisco_security_parsers
 from cisco_parser import compliance_result
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
@@ -178,7 +179,7 @@ def summary_file_output(devices):
         ports_all = 0
 
         for inter in dev['interfaces']:
-            if regparsers.is_physical_interface(inter['int_type']):
+            if regparsers.is_physical_interface(inter['type']):
                 ports_all = ports_all + 1
 
                 if (inter['status'] == 'connected'):
@@ -220,7 +221,7 @@ def interfaces_to_file(devices):
 #                vlans_all = vlans_all + ", "
 
             # count physical interfaces
-            if regparsers.is_physical_interface(inter['int_type']):
+            if regparsers.is_physical_interface(inter['type']):
                 ports_all = ports_all + 1
                 if (inter['status'] == 'connected'):
                     ports_used = ports_used + 1
@@ -384,7 +385,7 @@ def normalize_interface_names(non_norm_int):
     return 'Failed'
 
 
-def check_compliance(num, file, curr_path, config):
+def check_compliance(num, file, curr_path, config, device):
     dev_access = txtfsmparsers.get_access_config(config, curr_path)
     dev_con_access = txtfsmparsers.get_con_access_config(config, curr_path)
 
@@ -395,23 +396,23 @@ def check_compliance(num, file, curr_path, config):
     num,                                # 0
     file,                               # 1
     regparsers.obtain_hostname(config),            # 2
-    regparsers.obtain_mng_ip_from_config(config),  # 3
+    regparsers.obtain_mng_ip_from_config(device, config),  # 3
     regparsers.obtain_domain(config),              # 4
-    regparsers.obtain_model(config),               # 5
+    regparsers.obtain_model(device['vendor_id'], config),               # 5
     regparsers.obtain_serial(config),              # 6
-    " " + regparsers.obtain_software_version(config),  # 7
+    " " + regparsers.obtain_software_version(device['os'], config),  # 7
     regparsers.obtain_timezone(config),            # 8
-    regparsers.obtain_snmp_version(config),        # 9!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    regparsers.check_source_route(config),         # 10
-    regparsers.check_service_password_encryption(config), # 11
-    regparsers.check_weak_enable_password_encryption(config), # 12
-    regparsers.check_enable_password_encryption_method(config),  # 13
-    regparsers.check_ssh_version(config),          # 14
-    regparsers.check_logging_buffered(config),     # 15
-    regparsers.check_ssh_timeout(config),          # 16
-    regparsers.check_boot_network(config),         # 17
-    regparsers.check_service_config(config),       # 18
-    regparsers.check_cns_config(config),           # 19
+    cisco_security_parsers.obtain_snmp_version(config),        # 9!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    cisco_security_parsers.check_source_route(config),         # 10
+    cisco_security_parsers.check_service_password_encryption(config), # 11
+    cisco_security_parsers.check_weak_enable_password_encryption(config), # 12
+    cisco_security_parsers.check_enable_password_encryption_method(config),  # 13
+    cisco_security_parsers.check_ssh_version(config),          # 14
+    cisco_security_parsers.check_logging_buffered(config),     # 15
+    cisco_security_parsers.check_ssh_timeout(config),          # 16
+    cisco_security_parsers.check_boot_network(config),         # 17
+    cisco_security_parsers.check_service_config(config),       # 18
+    cisco_security_parsers.check_cns_config(config),           # 19
     dev_con_access[0][1],               # 20 con0 exec-time
     dev_con_access[0][2],               # 21 con0 transport preferred
     dev_con_access[0][3],               # 22 con0 trans inp
@@ -426,37 +427,37 @@ def check_compliance(num, file, curr_path, config):
     dev_access[1][2],                   # 31 vty trans pref
     dev_access[1][3],                   # 32 vty trans inp
     dev_access[1][4],                   # 33 vty acc class
-    regparsers.check_syslog_timestamp(config),     # 34
-    regparsers.check_proxy_arp(config),            # 35
-    regparsers.check_logging_console(config),      # 36
-    regparsers.check_logging_syslog(config),       # 37
-    regparsers.check_log_failures(config),         # 38
-    regparsers.check_log_success(config),          # 39
-    regparsers.check_tcp_keepalives_in(config),    # 40
-    regparsers.check_tcp_keepalives_out(config),   # 41
-    regparsers.check_inetd_disable(config),        # 42
-    regparsers.check_bootp_disable(config),        # 43
-    regparsers.check_authentication_retries(config),   # 44
-    regparsers.check_weak_local_users_passwords(config), # 45
-    regparsers.check_motd_banner(config),          # 46
-    regparsers.check_accounting_commands(config),  # 47
-    regparsers.check_connection_accounting(config),    # 48
-    regparsers.check_exec_commands_accounting(config), #49
-    regparsers.check_system_accounting(config),        # 50
-    regparsers.check_new_model(config),            # 51
-    regparsers.check_auth_login(config),           # 52
-    regparsers.check_auth_enable(config),          # 53
-    regparsers.get_ntp_servers(config),            # 54
-    regparsers.check_bpduguard(config),            # 55
-    regparsers.check_iparp_inspect(config),        # 56
-    regparsers.check_dhcp_snooping(config),        # 57
-    txtfsmparsers.get_tacacs_server_ips(config, curr_path),   #58
-    regparsers.check_aux(config),                  # 59
-    regparsers.check_portsecurity(config),         # 60
-    regparsers.check_stormcontrol(config),         # 61
-    regparsers.obtain_snmp_user_encr(config),      # 62
-    regparsers.check_snmpv3_authencr(config),      # 63
-    regparsers.check_snmpv2_ACL(config)            # 64
+    cisco_security_parsers.check_syslog_timestamp(config),     # 34
+    cisco_security_parsers.check_proxy_arp(config),            # 35
+    cisco_security_parsers.check_logging_console(config),      # 36
+    cisco_security_parsers.check_logging_syslog(config),       # 37
+    cisco_security_parsers.check_log_failures(config),         # 38
+    cisco_security_parsers.check_log_success(config),          # 39
+    cisco_security_parsers.check_tcp_keepalives_in(config),    # 40
+    cisco_security_parsers.check_tcp_keepalives_out(config),   # 41
+    cisco_security_parsers.check_inetd_disable(config),        # 42
+    cisco_security_parsers.check_bootp_disable(config),        # 43
+    cisco_security_parsers.check_authentication_retries(config),   # 44
+    cisco_security_parsers.check_weak_local_users_passwords(config), # 45
+    cisco_security_parsers.check_motd_banner(config),          # 46
+    cisco_security_parsers.check_accounting_commands(config),  # 47
+    cisco_security_parsers.check_connection_accounting(config),    # 48
+    cisco_security_parsers.check_exec_commands_accounting(config), #49
+    cisco_security_parsers.check_system_accounting(config),        # 50
+    cisco_security_parsers.check_new_model(config),            # 51
+    cisco_security_parsers.check_auth_login(config),           # 52
+    cisco_security_parsers.check_auth_enable(config),          # 53
+    cisco_security_parsers.get_ntp_servers(config),            # 54
+    cisco_security_parsers.check_bpduguard(config),            # 55
+    cisco_security_parsers.check_iparp_inspect(config),        # 56
+    cisco_security_parsers.check_dhcp_snooping(config),        # 57
+    txtfsmparsers.get_tacacs_server_ips(config, curr_path, device['model']),   #58
+    cisco_security_parsers.check_aux(config),                  # 59
+    cisco_security_parsers.check_portsecurity(config),         # 60
+    cisco_security_parsers.check_stormcontrol(config),         # 61
+    cisco_security_parsers.obtain_snmp_user_encr(config),      # 62
+    cisco_security_parsers.check_snmpv3_authencr(config),      # 63
+    cisco_security_parsers.check_snmpv2_ACL(config)            # 64
 ]
 
 

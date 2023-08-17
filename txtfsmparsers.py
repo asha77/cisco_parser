@@ -264,8 +264,8 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
         # 'status': interf[2]
         # 'vlan': interf[3]
         # 'duplex': interf[4]
-        # 'speed': interf[5]
-        # 'type': interf[6]
+        # 'actual_speed': interf[5]
+        # 'physical_type': interf[6]
 
         if empty_device['domain_name'] == "Not set":
             dev_id = empty_device['hostname']
@@ -335,8 +335,9 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
                 interface = {
                     'name': intf[0],
                     'description': intf[1],
-                    'int_type': regparsers.get_interface_type_by_name(intf[0]),  # physical, svi, po, tunnel, loopback, not set
-                    'speed': int_status[i_key]['speed'],
+                    'type': regparsers.get_interface_type_by_name(intf[0]),  # physical, svi, po, tunnel, loopback, not set
+                    'actual_speed': int_status[i_key]['actual_speed'],
+                    'physical_type': int_status[i_key]['physical_type'],
                     'ipv4': intf[3],
                     'mgmt': 'no',  # ToDo: add check_management_int() call here
                     'status': interface_status,
@@ -448,7 +449,7 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
         interfaces_config = fsm.ParseText(config)
         int_template.close()
 
-        int_status = get_int_status(config, empty_device['vendor_id'], curr_path)  # TODO: not relevant for routers on IOS!!!
+        int_status = get_int_status(config, empty_device['vendor_id'], curr_path)
         if empty_device['domain_name'] == "Not set":
             dev_id = empty_device['hostname']
         else:
@@ -503,8 +504,9 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
                 interface = {
                     'name': intf[0],
                     'description': intf[1],
-                    'int_type': regparsers.get_interface_type_by_name(intf[0]),  # physical, svi, po, tunnel, loopback, not set
-                    'speed': int_status[i_key]['speed'],
+                    'type': regparsers.get_interface_type_by_name(intf[0]),  # physical, svi, po, tunnel, loopback, not set
+                    'actual_speed': int_status[i_key]['actual_speed'],
+                    'physical_type': int_status[i_key]['physical_type'],
                     'ipv4': intf[3],
                     'mgmt': 'no',  # ToDo: add check_management_int() call here
                     'status': int_status[i_key]['status'],
@@ -752,7 +754,7 @@ def get_vlans_from_config(config, curr_path):
 
 def get_access_config(config, curr_path):
     # Extract vty device access parameters
-    access_template = open(os.path.join(curr_path, "cisco_dev_access.template"))
+    access_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "cisco_dev_access.template"))
     fsm = textfsm.TextFSM(access_template)
     fsm.Reset()
     access = fsm.ParseText(config)
@@ -822,7 +824,7 @@ def get_access_config(config, curr_path):
 
 def get_con_access_config(config, curr_path):
     # Extract console device access parameters
-    access_template = open(os.path.join(curr_path, "cisco_dev_con_access.template"))
+    access_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "cisco_dev_con_access.template"))
     fsm = textfsm.TextFSM(access_template)
     fsm.Reset()
     access = fsm.ParseText(config)
@@ -860,12 +862,12 @@ def get_con_access_config(config, curr_path):
     return access_config
 
 
-def get_tacacs_server_ips(config, curr_path):
+def get_tacacs_server_ips(config, curr_path, dev_model):
     '''
     Get tacacs server IPs
     '''
 
-    if ("N9K" in regparsers.obtain_model(config)):
+    if ("N9K" in dev_model):
         match = regparsers.re.findall('^tacacs-server\shost\s([0-9]+.[0-9]+.[0-9]+.[0-9]+)', config, regparsers.re.MULTILINE)
         if match:
             s = ""
@@ -876,7 +878,7 @@ def get_tacacs_server_ips(config, curr_path):
             return "Fail"
     else:
         # Extract vlan information (id, name) from configuration
-        tacacs_template = open(os.path.join(curr_path, 'cisco_tacacs_servers.template'))
+        tacacs_template = open(os.path.join(curr_path, "txtfsm_templates", "cisco", "cisco_tacacs_servers.template"))
         fsm = textfsm.TextFSM(tacacs_template)
         fsm.Reset()
         ips = fsm.ParseText(config)
@@ -928,8 +930,8 @@ def get_int_status(config, vendor_id, curr_path):
                 'status': port_status,
                 'vlan': interf[3],
                 'duplex': interf[4],
-                'speed': interf[5],
-                'type': interf[6]
+                'actual_speed': interf[5],
+                'physical_type': interf[6]
             })
 
     if vendor_id == 'huawei':
@@ -954,9 +956,9 @@ def get_int_status(config, vendor_id, curr_path):
                 'name': interf[3],
                 'status': port_status,
                 'vlan': '0',
-                'duplex': 'TBD',
-                'speed': 'TBD',
-                'type': 'TBD'
+                'duplex': '',
+                'actual_speed': '',
+                'physical_type': ''
             })
 
     return interfaces_status

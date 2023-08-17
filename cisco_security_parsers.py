@@ -1,3 +1,4 @@
+import re
 
 def obtain_snmp_version(config):
     '''
