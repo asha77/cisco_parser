@@ -14,7 +14,10 @@ config_entity = {
     'sw_version': '',                               # 15.2(7)E4
     'name_server': [],                              # ['10.2.51.71','10.2.51.71']
     'ntp_server': [],                               # ['10.2.51.71', '10.2.51.71']
-    'vtp': '',                                      # transparent
+    'vtp_version': '',                              # {1, 2, 3}
+    'vtp_domain_name': '',                          # domain name
+    'vtp_oper_mode': '',                            # {transparent, server, client, off}
+    'vtp_revision': '',                             # 0....N
     'snmp_ver': "",                                 # v3c
     'spanning-tree': '',                            # rapid-pvst
     'vrf': [],                                      # {'name': 'management', 'rt': '65000', 'rd': '50'}

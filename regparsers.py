@@ -25,6 +25,30 @@ def obtain_hostname(config):
                 return "Not Found"
 
 
+def obtain_vtp_version(config):
+    """
+    Extract vtp version
+    """
+    # code to get vtp version: 'VTP version running: 1"
+
+    match = re.search('VTP version running:\s+(.d)', config)
+    if match:
+        return match.group(1).strip()
+    return "Not Found"
+
+
+def obtain_vtp_domain_name(config):
+    """
+    Extract domain name
+    """
+    # code to get vtp version: 'VTP version running: 1"
+
+    match = re.search('VTP version running:\s+(.d)', config)
+    if match:
+        return match.group(1).strip()
+    return "Not Found"
+
+
 def obtain_timezone(config):
     """
     Extract clock timezone value
@@ -340,6 +364,7 @@ def fill_devinfo_to_model_from_config(empty_device, config, file):
     empty_device['model'] = obtain_model(vendor_id, config)
     empty_device['serial'] = obtain_serial(config)
     empty_device['sw_version'] = obtain_software_version(empty_device['os'], config)
+    empty_device['vtp_version'] = obtain_vtp_version(config)
     return empty_device
 
 
