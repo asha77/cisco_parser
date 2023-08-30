@@ -29,7 +29,7 @@ def init_files():
 
     # инициализация файла c основным выводом
     resfile = open(os.path.join("output", "cparser_output.csv"), "w")
-    resfile.write("Configfile;Hostname;Mng IP from filename;Mng from config;Domain Name;Family;Model;Serial;OS;SW Version;Ports avail.;Ports used\n")
+    resfile.write("Configfile;Hostname;Mng IP from filename;Mng from config;Domain Name;Family;Model;Serial;OS;SW Version;VTP ver.;VTP Mode;VTP Domain;VTP rev.;Ports avail.;Ports used\n")
     resfile.close()
 
     # инициализация файла с портами, на которых есть соседи
@@ -170,7 +170,7 @@ def many_macs_file_output(config, curr_path, neighbours, devinfo):
 
 def summary_file_output(devices):
     resfile = open(os.path.join("output", "cparser_output.csv"), "a")
-#    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;Ports avail.;Ports used\n")
+#    resfile.write("Configfile;Hostname;Mng IP;Domain Name;Model;Serial;SW Version;VTP ver.;VTP Mode;VTP Domain;VTP rev.;Ports avail.;Ports used\n")
     # ToDo: сортировать по именам при выводе в файл!!!
     # ToDo: подумать над сравнением двух выводов inventory!!!
 
@@ -186,7 +186,7 @@ def summary_file_output(devices):
                     ports_used = ports_used + 1
 
         # вывод в файл информации по устройстваи и утилизированным портам
-        resfile.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1s};{9:1s};{10:1d};{11:1d} \n'.format(
+        resfile.write('{0:1s};{1:1s};{2:1s};{3:1s};{4:1s};{5:1s};{6:1s};{7:1s};{8:1s};{9:1s};{10:1s};{11:1s};{12:1s};{13:1s};{14:1d};{15:1d} \n'.format(
             dev['config_filename'],
             dev['hostname'],
             dev['mgmt_ipv4_from_filename'],
@@ -197,6 +197,10 @@ def summary_file_output(devices):
             dev['serial'],
             dev['os'],
             " " +dev['sw_version'],
+            dev['vtp_version'],
+            dev['vtp_oper_mode'],
+            dev['vtp_domain_name'],
+            dev['vtp_revision'],
             ports_all,
             ports_used))
 

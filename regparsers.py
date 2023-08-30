@@ -31,19 +31,50 @@ def obtain_vtp_version(config):
     """
     # code to get vtp version: 'VTP version running: 1"
 
-    match = re.search('VTP version running:\s+(.d)', config)
+    match = re.search('VTP version running\s*:\s*(\d)', config)
     if match:
         return match.group(1).strip()
+    else:
+        match = re.search('VTP Version\s*:\s*(\d)', config)
+        if match:
+            return match.group(1).strip()
+        else:
+            match = re.search('VTP Version\s*:\s*running VTP(\d)', config)
+            if match:
+                return match.group(1).strip()
     return "Not Found"
 
 
 def obtain_vtp_domain_name(config):
     """
-    Extract domain name
+    Extract VTP domain name
     """
-    # code to get vtp version: 'VTP version running: 1"
+    # code to get vtp domain name: 'VTP Domain Name                 : DOM1"
 
-    match = re.search('VTP version running:\s+(.d)', config)
+    match = re.search('VTP Domain Name\s*:\s+(.*)', config)
+    if match:
+        return match.group(1).strip()
+    return "Not Found"
+
+
+def obtain_vtp_oper_mode(config):
+    """
+    Extract VTP Operation Mode
+    """
+    # code to get vtp version: 'VTP Operating Mode              : Transparent"
+
+    match = re.search('VTP Operating Mode\s*:\s+(.*)', config)
+    if match:
+        return match.group(1).strip()
+    return "Not Found"
+
+def obtain_vtp_revision(config):
+    """
+    Extract VTP Operation Mode
+    """
+    # code to get vtp version: 'Configuration Revision            : 299"
+
+    match = re.search('Configuration Revision\s*:\s+(\d+)', config)
     if match:
         return match.group(1).strip()
     return "Not Found"
@@ -365,6 +396,9 @@ def fill_devinfo_to_model_from_config(empty_device, config, file):
     empty_device['serial'] = obtain_serial(config)
     empty_device['sw_version'] = obtain_software_version(empty_device['os'], config)
     empty_device['vtp_version'] = obtain_vtp_version(config)
+    empty_device['vtp_domain_name'] = obtain_vtp_domain_name(config)
+    empty_device['vtp_oper_mode'] = obtain_vtp_oper_mode(config)
+    empty_device['vtp_revision'] = obtain_vtp_revision(config)
     return empty_device
 
 
