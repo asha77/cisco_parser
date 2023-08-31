@@ -21,8 +21,8 @@ def get_dev_by_id(nodes, id):
                     if id == node.attrib.get("id"):
                         devname = node.attrib.get("Name")
 
-    if devname == "":
-        print("One link ")
+#    if devname == "":
+#        print("One link ")
 
     return devname
 
@@ -38,16 +38,22 @@ def main():
     diagram = drawio_diagram()
     diagram.from_file(namespace.file)
 
-    data = base64.b64decode(diagram.current_diagram.text)
-    xml = zlib.decompress(data, wbits=-15)
-    xml = unquote(xml)
+#    diagram.from_file("net_diag.drawio.xml")
+#    data = base64.b64decode(diagram.current_diagram.text)
+#    xml = zlib.decompress(data, wbits=-15)
+#    xml = unquote(xml)
 
 #    print(xml)
 #    tree = ET.parse("netdiag.xml")
 #    root = tree.getroot()
 
-    root = ET.fromstring(xml)
-    nodes = root.find('root')
+#    root = ET.fromstring(diagram.drawio_diagram_xml)
+
+    #    root = ET.fromstring(xml)
+#    nodes = root.find('root')
+
+
+    nodes = diagram.current_root
 
     print("List of devices:")
     i = 0
