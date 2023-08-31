@@ -117,7 +117,7 @@ def main():
 
         for device in devices:
             if diagram_utils.filter_devices(regparsers.get_only_name(device['hostname'], device['domain_name'])):
-                lbtext = regparsers.get_only_name(device['hostname'], device['domain_name']) + "&lt;div&gt;" + device['model']
+                lbtext = regparsers.get_only_name(device['hostname'], device['domain_name']) + "&lt;div&gt;" + device['model']+ "&lt;div&gt;" + device['mgmt_ipv4_from_filename']
                 if device['domain_name'] == "Not set":
                     dev_id = device['hostname']
                 else:

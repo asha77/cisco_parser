@@ -115,6 +115,10 @@ def obtain_device_family(vendor, config):
                     match = re.search("ROM: Bootstrap program is Linux", config)
                     if match:
                         return 'cisco_vrouter'
+                    else:
+                        match = re.search("\wisco (\S+) .* (with)*\d+K bytes of physical memory.", config)
+                        if match:
+                            return 'cisco_catalyst'
 
     if vendor == 'arista':
         match = re.search("Arista vEOS", config)
