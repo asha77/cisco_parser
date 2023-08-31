@@ -414,7 +414,7 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
                 interface = {
                     'name': intf[0],
                     'description': intf[1],
-                    'int_type': regparsers.get_interface_type_by_name(intf[0]),    # physical, svi, po, tunnel, loopback, not set
+                    'type': regparsers.get_interface_type_by_name(intf[0]),    # physical, svi, po, tunnel, loopback, not set
                     'speed': '',                                        # TODO: may be enabled globally
                     'ipv4': regparsers.ip_mask_to_prefix(intf[3], intf[4]),
                     'mgmt': 'no',                                       # ToDo: add check_management_int() call here
@@ -576,7 +576,7 @@ def get_interfaces_config_to_model(empty_device, config, curr_path):
                 interface = {
                     'name': intf[0],
                     'description': intf[1],
-                    'int_type': regparsers.get_interface_type_by_name(intf[0]),    # physical, svi, po, tunnel, loopback, not set
+                    'type': regparsers.get_interface_type_by_name(intf[0]),    # physical, svi, po, tunnel, loopback, not set
                     'speed': '',                                        # TODO: may be enabled globally
                     'ipv4': regparsers.ip_mask_to_prefix(intf[3], intf[4]),
                     'mgmt': 'no',                                       # ToDo: add check_management_int() call here
