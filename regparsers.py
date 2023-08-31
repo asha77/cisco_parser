@@ -113,6 +113,10 @@ def obtain_model(vendor_id, config):
                     match = re.search("ROM: Bootstrap program is Linux", config)
                     if match:
                         return "Cisco IOS vRouter "
+                    else:
+                        match = re.search("\wisco (\S+) .* (with)*\d+K bytes of physical memory.", config)
+                        if match:
+                            return match.group(1).strip()
 
     if vendor_id == 'huawei':
         match = re.search("Copyright.*HUAWEI.*\nHUAWEI\s([\w-]+)\s", config)
