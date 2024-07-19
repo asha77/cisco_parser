@@ -250,6 +250,7 @@ def obtain_software_version(os, config):
             return match.group(1).strip()
     else:
         return "Not Found"
+    return "Not_ANY_Found"
 
 
 def obtain_mng_ip_from_filename(filename):

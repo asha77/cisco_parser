@@ -9,7 +9,12 @@ vendor_id_vendor = {
     'arista': 'Arista Networks',
 }
 
-
+def find_config_section(config: str, sel: str, seqname: str):
+    start_id = config.find(sel + seqname)
+    end_id = config.find(sel, start_id + len(sel + seqname)) + len(sel)
+    if end_id == len(sel)-1:
+        end_id = len(config)
+    return config[start_id:end_id]
 
 def vendor_id_to_vendor(vendor_id):
     '''
@@ -158,6 +163,7 @@ def obtain_device_os(vendor_id, config):
     Extract software family from show version: cisco_ios_xe, cisco_ios, cisco_ios_xr, arista_eos, cisco_nx_os, huawei_vrp, aruba_aoscx
     '''
     if vendor_id == 'cisco':
+        config = find_config_section(config, "# show ", "ver")
         match = re.search("Cisco IOS.XE .oftware", config)
         if match:
             return 'cisco_ios_xe'
