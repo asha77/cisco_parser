@@ -163,6 +163,7 @@ def obtain_serial(config):
                     if match:
                         return match.group(1).strip()
                     else:
+
                         return "Not Found"
 
     if vendor_id == 'huawei':

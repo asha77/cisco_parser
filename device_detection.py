@@ -11,6 +11,8 @@ vendor_id_vendor = {
 
 def find_config_section(config: str, sel: str, seqname: str):
     start_id = config.find(sel + seqname)
+    if start_id == -1:
+        return config
     end_id = config.find(sel, start_id + len(sel + seqname)) + len(sel)
     if end_id == len(sel)-1:
         end_id = len(config)
@@ -52,6 +54,9 @@ def obtain_device_vendor_id(config):
         return 'cisco'
 
     match = re.search("Cisco Adaptive Security Appliance Software Version", config)
+    if match:
+        return 'cisco'
+    match = re.search("Copyright.*Cisco Systems, Inc. All rights reserved.", config)
     if match:
         return 'cisco'
 
@@ -121,9 +126,13 @@ def obtain_device_family(vendor, config):
                     if match:
                         return 'cisco_vrouter'
                     else:
-                        match = re.search("\wisco (\S+) .* (with)*\d+K bytes of physical memory.", config)
+                        match = re.search("\s+cisco Nexus9000 (.*) Chassis", config)
                         if match:
-                            return 'cisco_catalyst'
+                            return 'cisco_nexus'
+                        else:
+                            match = re.search("\wisco (\S+) .* (with)*\d+K bytes of physical memory.", config)
+                            if match:
+                                return 'cisco_catalyst'
 
     if vendor == 'arista':
         match = re.search("Arista vEOS", config)
