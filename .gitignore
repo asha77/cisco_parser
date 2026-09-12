@@ -4,3 +4,4 @@ venv
 .venv
 .idea
 __pycache__
+.vscode/launch.json

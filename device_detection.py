@@ -42,9 +42,9 @@ def obtain_device_vendor_id(config):
     if match:
         return 'cisco'
 
-    match = re.search("sh\w*\srun.*\nBuilding configuration...\n\nCurrent configuration", config)
-    if match:
-        return 'cisco'
+#    match = re.search("sh\w*\srun.*\nBuilding configuration...\n\nCurrent configuration", config)
+#    if match:
+#        return 'cisco'
 
     match = re.search("Cisco Adaptive Security Appliance Software Version", config)
     if match:
@@ -91,6 +91,10 @@ def obtain_device_vendor_id(config):
     match = re.search("Arista vEOS", config)
     if match:
         return 'arista'
+
+    match = re.search("SONiC Software Version:", config)
+    if match:
+        return 'edgecore'
 
     return "Not Found"
 

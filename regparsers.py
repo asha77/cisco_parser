@@ -201,6 +201,12 @@ def obtain_serial(config):
                         return match.group(1).strip()
                     else:
                         return "Not Found"
+
+    if vendor_id == 'edgecore':
+        match = re.search("Serial Number:\s(\w*)", config)
+        if match:
+            return match.group(1).strip()
+
     return "Not Found"
 
 
