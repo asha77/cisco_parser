@@ -14,6 +14,8 @@ def get_dev_style_from_model(model):
 
     if ("N9K" in model):
         return [nexus_switch_style, 120, 60]
+    elif ("WS-C45" in model):
+        return [l3_switch_style, 120, 120]
     elif (("WS-C" in model) or ("C1000" in model) or ("C9200" in model)):
         return [l2_switch_style, 120, 60]
     elif (("C9500" in model) or ("C9300" in model)):
